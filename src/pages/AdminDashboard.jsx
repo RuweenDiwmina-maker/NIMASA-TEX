@@ -96,7 +96,7 @@ const AdminDashboard = () => {
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [editingAdId, setEditingAdId] = useState(null);
   const [adForm, setAdForm] = useState({
-    titleLine1: '', titleLine2: '', subtitle: '', image: '', button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPage: 'Home'
+    titleLine1: '', titleLine2: '', subtitle: '', image: '', button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPage: 'Home', adType: 'custom'
   });
   const [autoplayInterval, setAutoplayInterval] = useState(settings.autoplayInterval || 5);
 
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
       setAdForm({ ...ad });
     } else {
       setEditingAdId(null);
-      setAdForm({ titleLine1: '', titleLine2: '', subtitle: '', image: '', button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPage: 'Home' });
+      setAdForm({ titleLine1: '', titleLine2: '', subtitle: '', image: '', button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPage: 'Home', adType: 'custom' });
     }
     setIsAdModalOpen(true);
   };
@@ -603,6 +603,21 @@ const AdminDashboard = () => {
               
               <div style={{ padding: '30px', maxHeight: '70vh', overflowY: 'auto' }}>
                 <form onSubmit={handleAdSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Ad Type</label>
+                    <div style={{ display: 'flex', gap: '20px', padding: '10px 15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                        <input type="radio" name="adType" value="custom" checked={adForm.adType !== 'full'} onChange={handleAdChange} />
+                        Customize Ad (Text & Buttons)
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                        <input type="radio" name="adType" value="full" checked={adForm.adType === 'full'} onChange={handleAdChange} />
+                        Full Image Ad (No Text)
+                      </label>
+                    </div>
+                  </div>
+
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Target Page</label>
                     <select required name="targetPage" value={adForm.targetPage} onChange={handleAdChange} style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none', backgroundColor: 'white', cursor: 'pointer' }}>
@@ -611,45 +626,57 @@ const AdminDashboard = () => {
                       <option value="Women">Women</option>
                       <option value="Kids">Kids</option>
                       <option value="New Releases">New Releases</option>
+                      <option value="Sale">Sale</option>
                     </select>
                   </div>
-                  <div style={{ display: 'flex', gap: '20px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Heading Line 1</label>
-                      <input required type="text" name="titleLine1" value={adForm.titleLine1} onChange={handleAdChange} placeholder="e.g. ELEVATE" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Heading Line 2 (Highlighted)</label>
-                      <input required type="text" name="titleLine2" value={adForm.titleLine2} onChange={handleAdChange} placeholder="e.g. YOUR STYLE" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
-                    </div>
-                  </div>
 
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Subtitle / Description</label>
-                    <textarea required name="subtitle" value={adForm.subtitle} onChange={handleAdChange} rows="3" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none', resize: 'vertical' }}></textarea>
-                  </div>
+                  {adForm.adType !== 'full' ? (
+                    <>
+                      <div style={{ display: 'flex', gap: '20px' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Heading Line 1</label>
+                          <input required type="text" name="titleLine1" value={adForm.titleLine1} onChange={handleAdChange} placeholder="e.g. ELEVATE" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Heading Line 2 (Highlighted)</label>
+                          <input required type="text" name="titleLine2" value={adForm.titleLine2} onChange={handleAdChange} placeholder="e.g. YOUR STYLE" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                      </div>
 
-                  <div style={{ display: 'flex', gap: '20px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Primary Button Text</label>
-                      <input required type="text" name="button1Text" value={adForm.button1Text} onChange={handleAdChange} style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Primary Button Link</label>
-                      <input required type="text" name="button1Link" value={adForm.button1Link} onChange={handleAdChange} placeholder="/new-releases.html" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
-                    </div>
-                  </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Subtitle / Description</label>
+                        <textarea required name="subtitle" value={adForm.subtitle} onChange={handleAdChange} rows="3" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none', resize: 'vertical' }}></textarea>
+                      </div>
 
-                  <div style={{ display: 'flex', gap: '20px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Secondary Button Text</label>
-                      <input required type="text" name="button2Text" value={adForm.button2Text} onChange={handleAdChange} style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                      <div style={{ display: 'flex', gap: '20px' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Primary Button Text</label>
+                          <input required type="text" name="button1Text" value={adForm.button1Text} onChange={handleAdChange} style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Primary Button Link</label>
+                          <input required type="text" name="button1Link" value={adForm.button1Link} onChange={handleAdChange} placeholder="/new-releases.html" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '20px' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Secondary Button Text</label>
+                          <input required type="text" name="button2Text" value={adForm.button2Text} onChange={handleAdChange} style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Secondary Button Link</label>
+                          <input required type="text" name="button2Link" value={adForm.button2Link} onChange={handleAdChange} placeholder="/men.html" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Target Link (Optional)</label>
+                      <input type="text" name="button1Link" value={adForm.button1Link || ''} onChange={handleAdChange} placeholder="/sale.html" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
+                      <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>Where should the user go when they click the banner?</p>
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Secondary Button Link</label>
-                      <input required type="text" name="button2Link" value={adForm.button2Link} onChange={handleAdChange} placeholder="/men.html" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none' }} />
-                    </div>
-                  </div>
+                  )}
 
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Banner Image</label>

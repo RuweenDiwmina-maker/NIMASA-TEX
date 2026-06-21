@@ -2,6 +2,7 @@ import React from 'react';
 import { useProduct } from '../context/ProductContext';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import HeroCarousel from '../components/HeroCarousel';
 
 
 
@@ -17,17 +18,7 @@ const Sale = () => {
         </div>
       </nav>
 
-      <header className="nike-hero">
-        <img src="/images/sale_hero_1779900247375.png" alt="Sale Hero" className="nike-hero-img" />
-        <div className="nike-hero-content">
-          <h1 className="nike-hero-title">SALE</h1>
-          <p className="nike-hero-subtitle">Don't miss out on premium gear at reduced prices.</p>
-          <div className="nike-hero-buttons">
-            <button className="btn-pill-dark">Shop New Arrivals</button>
-            <button className="btn-pill-light">Shop All Sale</button>
-          </div>
-        </div>
-      </header>
+      <HeroCarousel targetPage="Sale" />
 
       <main className="container" style={{maxWidth: '1920px', padding: '0 48px'}}>
         <h2 className="nike-section-title">Latest & Greatest</h2>

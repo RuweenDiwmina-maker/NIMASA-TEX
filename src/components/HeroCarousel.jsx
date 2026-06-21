@@ -46,18 +46,30 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
             alignItems: 'flex-start'
           }}
         >
-          <div className="hero-bg">
-            <img src={ad.image} alt={ad.titleLine1} className="hero-image" />
-            <div className="overlay"></div>
-          </div>
-          <div className="hero-content" style={{ position: 'relative', zIndex: 3 }}>
-            <h1 className="hero-title">{ad.titleLine1}<br/><span className="text-red">{ad.titleLine2}</span></h1>
-            <p className="hero-subtitle">{ad.subtitle}</p>
-            <div className="hero-buttons">
-              <button className="btn btn-primary" onClick={() => navigate(ad.button1Link)}>{ad.button1Text}</button>
-              <button className="btn btn-secondary" onClick={() => navigate(ad.button2Link)}>{ad.button2Text}</button>
+          {ad.adType === 'full' ? (
+            <div 
+              className="hero-bg" 
+              style={{ cursor: ad.button1Link ? 'pointer' : 'default', height: '100%', width: '100%' }}
+              onClick={() => ad.button1Link && navigate(ad.button1Link)}
+            >
+              <img src={ad.image} alt={ad.targetPage || 'Ad'} className="hero-image" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="hero-bg">
+                <img src={ad.image} alt={ad.titleLine1} className="hero-image" />
+                <div className="overlay"></div>
+              </div>
+              <div className="hero-content" style={{ position: 'relative', zIndex: 3 }}>
+                <h1 className="hero-title">{ad.titleLine1}<br/><span className="text-red">{ad.titleLine2}</span></h1>
+                <p className="hero-subtitle">{ad.subtitle}</p>
+                <div className="hero-buttons">
+                  <button className="btn btn-primary" onClick={() => navigate(ad.button1Link)}>{ad.button1Text}</button>
+                  <button className="btn btn-secondary" onClick={() => navigate(ad.button2Link)}>{ad.button2Text}</button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       ))}
 

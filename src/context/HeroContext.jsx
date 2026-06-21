@@ -12,6 +12,66 @@ const defaultAds = [
     button2Text: 'Explore',
     button2Link: '/men.html',
     targetPage: 'Home'
+  },
+  {
+    id: 2,
+    titleLine1: 'NEW',
+    titleLine2: 'RELEASES',
+    subtitle: 'Be the first to wear our cutting-edge drops.',
+    image: '/images/new_releases_hero_1779900201787.png',
+    button1Text: 'Shop New Arrivals',
+    button1Link: '/new-releases.html',
+    button2Text: 'Shop All',
+    button2Link: '/new-releases.html',
+    targetPage: 'New Releases'
+  },
+  {
+    id: 3,
+    titleLine1: 'SALE',
+    titleLine2: '',
+    subtitle: 'Don\'t miss out on premium gear at reduced prices.',
+    image: '/images/sale_hero_1779900247375.png',
+    button1Text: 'Shop New Arrivals',
+    button1Link: '/new-releases.html',
+    button2Text: 'Shop All Sale',
+    button2Link: '/sale.html',
+    targetPage: 'Sale'
+  },
+  {
+    id: 4,
+    titleLine1: 'KIDS',
+    titleLine2: '',
+    subtitle: 'Gear up the next generation of athletes.',
+    image: '/images/kids_hero_1779900231979.png',
+    button1Text: 'Shop New Arrivals',
+    button1Link: '/new-releases.html',
+    button2Text: 'Shop All Kids',
+    button2Link: '/kids.html',
+    targetPage: 'Kids'
+  },
+  {
+    id: 5,
+    titleLine1: 'MEN',
+    titleLine2: '',
+    subtitle: 'Elevate your everyday style.',
+    image: '/images/men_hero_1779898328198.png',
+    button1Text: 'Shop Men',
+    button1Link: '/men.html',
+    button2Text: 'New Arrivals',
+    button2Link: '/new-releases.html',
+    targetPage: 'Men'
+  },
+  {
+    id: 6,
+    titleLine1: 'WOMEN',
+    titleLine2: '',
+    subtitle: 'Discover the latest trends.',
+    image: '/images/women_hero_1779900217677.png',
+    button1Text: 'Shop Women',
+    button1Link: '/women.html',
+    button2Text: 'New Arrivals',
+    button2Link: '/new-releases.html',
+    targetPage: 'Women'
   }
 ];
 
@@ -28,11 +88,24 @@ export const HeroProvider = ({ children }) => {
     const oldHeroData = localStorage.getItem('nimasaHeroData');
     if (!savedAds && oldHeroData) {
       const parsedOld = JSON.parse(oldHeroData);
-      return [{ ...parsedOld, id: 1, targetPage: 'Home' }];
+      const migrated = [{ ...parsedOld, id: 1, targetPage: 'Home' }];
+      ['New Releases', 'Sale', 'Kids', 'Men', 'Women'].forEach(page => {
+        const ad = defaultAds.find(a => a.targetPage === page);
+        if (ad) migrated.push(ad);
+      });
+      return migrated;
     }
     if (savedAds) {
-      const parsed = JSON.parse(savedAds);
-      return parsed.map(ad => ad.targetPage ? ad : { ...ad, targetPage: 'Home' });
+      let parsed = JSON.parse(savedAds);
+      parsed = parsed.map(ad => ad.targetPage ? ad : { ...ad, targetPage: 'Home' });
+      ['New Releases', 'Sale', 'Kids', 'Men', 'Women'].forEach(page => {
+        const hasAd = parsed.some(ad => ad.targetPage === page);
+        if (!hasAd) {
+          const defaultAd = defaultAds.find(ad => ad.targetPage === page);
+          if (defaultAd) parsed.push(defaultAd);
+        }
+      });
+      return parsed;
     }
     return defaultAds;
   });
