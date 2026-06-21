@@ -27,54 +27,79 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
     return null;
   }
 
+  const isOnlyFullAds = pageAds.every(ad => ad.adType === 'full');
+
   return (
-    <header className="hero" style={{ position: 'relative' }}>
-      {pageAds.map((ad, index) => (
-        <div 
-          key={ad.id} 
-          className={`hero-slide ${index === currentAdIndex ? 'active' : ''}`}
-          style={{ 
-            position: 'absolute', 
-            top: 0, left: 0, width: '100%', height: '100%', 
-            opacity: index === currentAdIndex ? 1 : 0, 
-            transition: 'opacity 0.8s ease-in-out',
-            pointerEvents: index === currentAdIndex ? 'auto' : 'none',
-            zIndex: index === currentAdIndex ? 2 : 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'flex-start'
-          }}
-        >
-          {ad.adType === 'full' ? (
-            <div 
-              className="hero-bg" 
-              style={{ cursor: ad.button1Link ? 'pointer' : 'default', height: '100%', width: '100%' }}
-              onClick={() => ad.button1Link && navigate(ad.button1Link)}
-            >
-              <img src={ad.image} alt={ad.targetPage || 'Ad'} className="hero-image" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-            </div>
-          ) : (
-            <>
-              <div className="hero-bg">
-                <img src={ad.image} alt={ad.titleLine1} className="hero-image" />
-                <div className="overlay"></div>
+    <header className="hero" style={{ position: 'relative', ...(isOnlyFullAds ? { height: 'auto', minHeight: 'auto', display: 'block' } : {}) }}>
+      {pageAds.map((ad, index) => {
+        const isFull = ad.adType === 'full';
+        const isActive = index === currentAdIndex;
+        
+        return (
+          <div 
+            key={ad.id} 
+            className={`hero-slide ${isActive ? 'active' : ''}`}
+            style={{ 
+              position: isOnlyFullAds ? (isActive ? 'relative' : 'absolute') : 'absolute', 
+              top: 0, left: 0, width: '100%', height: isOnlyFullAds ? 'auto' : '100%', 
+              opacity: isActive ? 1 : 0, 
+              transition: 'opacity 0.8s ease-in-out',
+              pointerEvents: isActive ? 'auto' : 'none',
+              zIndex: isActive ? 2 : 1,
+              display: isFull && isOnlyFullAds ? 'block' : 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'flex-start'
+            }}
+          >
+            {isFull ? (
+              <div 
+                className="hero-bg" 
+                style={{ 
+                  cursor: ad.button1Link ? 'pointer' : 'default', 
+                  position: isOnlyFullAds ? 'relative' : 'absolute',
+                  height: isOnlyFullAds ? 'auto' : '100%', 
+                  width: '100%',
+                  backgroundColor: 'transparent'
+                }}
+                onClick={() => ad.button1Link && navigate(ad.button1Link)}
+              >
+                <img 
+                  src={ad.image} 
+                  alt={ad.targetPage || 'Ad'} 
+                  className="hero-image" 
+                  style={{ 
+                    objectFit: isOnlyFullAds ? 'contain' : 'cover', 
+                    width: '100%', 
+                    height: isOnlyFullAds ? 'auto' : '100%',
+                    paddingTop: isOnlyFullAds ? '80px' : '0', // Add some padding for the fixed navbar
+                    paddingBottom: '0',
+                    display: 'block'
+                  }} 
+                />
               </div>
-              <div className="hero-content" style={{ position: 'relative', zIndex: 3 }}>
-                <h1 className="hero-title">{ad.titleLine1}<br/><span className="text-red">{ad.titleLine2}</span></h1>
-                <p className="hero-subtitle">{ad.subtitle}</p>
-                <div className="hero-buttons">
-                  <button className="btn btn-primary" onClick={() => navigate(ad.button1Link)}>{ad.button1Text}</button>
-                  <button className="btn btn-secondary" onClick={() => navigate(ad.button2Link)}>{ad.button2Text}</button>
+            ) : (
+              <>
+                <div className="hero-bg">
+                  <img src={ad.image} alt={ad.titleLine1} className="hero-image" />
+                  <div className="overlay"></div>
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      ))}
+                <div className="hero-content" style={{ position: 'relative', zIndex: 3 }}>
+                  <h1 className="hero-title">{ad.titleLine1}<br/><span className="text-red">{ad.titleLine2}</span></h1>
+                  <p className="hero-subtitle">{ad.subtitle}</p>
+                  <div className="hero-buttons">
+                    <button className="btn btn-primary" onClick={() => navigate(ad.button1Link)}>{ad.button1Text}</button>
+                    <button className="btn btn-secondary" onClick={() => navigate(ad.button2Link)}>{ad.button2Text}</button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })}
 
       {pageAds.length > 1 && (
-        <div style={{ position: 'absolute', bottom: '40px', left: '0', width: '100%', display: 'flex', justifyContent: 'center', gap: '12px', zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: isOnlyFullAds ? '20px' : '40px', left: '0', width: '100%', display: 'flex', justifyContent: 'center', gap: '12px', zIndex: 10 }}>
           {pageAds.map((_, index) => (
             <button 
               key={index} 
