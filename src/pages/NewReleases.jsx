@@ -26,7 +26,7 @@ const NewReleases = () => {
       <main className="container" style={{maxWidth: '1920px', padding: '0 48px'}}>
         <h2 className="nike-section-title">Latest & Greatest</h2>
         {products.length > 0 ? (
-          <div className="nike-product-scroll">
+          <div className="nike-product-grid">
             {products.map(p => <ProductCard key={p.id} product={p} isNikeStyle={true} />)}
           </div>
         ) : (

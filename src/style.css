@@ -774,6 +774,19 @@ ul {
   display: none; /* Chrome */
 }
 
+/* 4-Column Wrap Grid for Category Pages */
+.nike-product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding-bottom: 20px;
+}
+
+.nike-product-grid .nike-product-card {
+  min-width: auto;
+  flex: none;
+}
+
 .nike-product-card {
   min-width: 300px;
   flex: 0 0 300px;
