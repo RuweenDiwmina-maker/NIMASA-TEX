@@ -68,7 +68,7 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
       <div className={navContainerClass}>
         <div className={isHome ? 'nav-left' : 'nike-nav-left'}>
           <Link to="/" className="logo">
-            <img src="/src/assets/Logo_black.png" alt="Nimasa Tex Logo" className="site-logo" />
+            <img src="/src/assets/full_logo.png" alt="Nimasa Tex Logo" className="site-logo" />
           </Link>
         </div>
         

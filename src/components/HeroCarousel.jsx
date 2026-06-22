@@ -27,10 +27,15 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
     return null;
   }
 
-  const isOnlyFullAds = pageAds.every(ad => ad.adType === 'full');
-
   return (
-    <header className="hero" style={{ position: 'relative', ...(isOnlyFullAds ? { height: 'auto', minHeight: 'auto', display: 'block' } : {}) }}>
+    <header className="hero" style={{ 
+      position: 'relative', 
+      height: 'auto', 
+      minHeight: 'auto', 
+      display: 'block',
+      marginTop: '119px',
+      overflow: 'hidden'
+    }}>
       {pageAds.map((ad, index) => {
         const isFull = ad.adType === 'full';
         const isActive = index === currentAdIndex;
@@ -40,13 +45,14 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
             key={ad.id} 
             className={`hero-slide ${isActive ? 'active' : ''}`}
             style={{ 
-              position: isOnlyFullAds ? (isActive ? 'relative' : 'absolute') : 'absolute', 
-              top: 0, left: 0, width: '100%', height: isOnlyFullAds ? 'auto' : '100%', 
+              position: isActive ? 'relative' : 'absolute', 
+              top: 0, left: 0, width: '100%', 
+              height: isActive ? 'auto' : '100%', 
               opacity: isActive ? 1 : 0, 
               transition: 'opacity 0.8s ease-in-out',
               pointerEvents: isActive ? 'auto' : 'none',
               zIndex: isActive ? 2 : 1,
-              display: isFull && isOnlyFullAds ? 'block' : 'flex',
+              display: isFull ? 'block' : 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'flex-start'
@@ -57,8 +63,8 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
                 className="hero-bg" 
                 style={{ 
                   cursor: ad.button1Link ? 'pointer' : 'default', 
-                  position: isOnlyFullAds ? 'relative' : 'absolute',
-                  height: isOnlyFullAds ? 'auto' : '100%', 
+                  position: 'relative',
+                  height: 'auto', 
                   width: '100%',
                   backgroundColor: 'transparent'
                 }}
@@ -69,19 +75,19 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
                   alt={ad.targetPage || 'Ad'} 
                   className="hero-image" 
                   style={{ 
-                    objectFit: isOnlyFullAds ? 'contain' : 'cover', 
+                    objectFit: 'contain',
+                    objectPosition: 'center',
                     width: '100%', 
-                    height: isOnlyFullAds ? 'auto' : '100%',
-                    paddingTop: isOnlyFullAds ? '80px' : '0', // Add some padding for the fixed navbar
-                    paddingBottom: '0',
-                    display: 'block'
+                    height: 'auto',
+                    display: 'block',
+                    padding: 0
                   }} 
                 />
               </div>
             ) : (
               <>
                 <div className="hero-bg">
-                  <img src={ad.image} alt={ad.titleLine1} className="hero-image" />
+                  <img src={ad.image} alt={ad.titleLine1} className="hero-image" style={{ objectFit: 'cover', objectPosition: 'center', padding: 0 }} />
                   <div className="overlay"></div>
                 </div>
                 <div className="hero-content" style={{ position: 'relative', zIndex: 3 }}>
@@ -99,7 +105,7 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
       })}
 
       {pageAds.length > 1 && (
-        <div style={{ position: 'absolute', bottom: isOnlyFullAds ? '20px' : '40px', left: '0', width: '100%', display: 'flex', justifyContent: 'center', gap: '12px', zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: '20px', left: '0', width: '100%', display: 'flex', justifyContent: 'center', gap: '12px', zIndex: 10 }}>
           {pageAds.map((_, index) => (
             <button 
               key={index} 
