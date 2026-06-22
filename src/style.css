@@ -386,7 +386,8 @@ ul {
 
 @media (max-width: 480px) {
   .product-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 
@@ -780,6 +781,25 @@ ul {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   padding-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+  .nike-product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .nike-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .nike-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 }
 
 .nike-product-grid .nike-product-card {
@@ -1903,3 +1923,141 @@ ul {
   0% { transform: rotate(-90deg); }
   100% { transform: rotate(270deg); }
 }
+
+.mobile-menu-btn { display: none; }
+.mobile-close-btn { display: none; }
+
+@media (max-width: 900px) {
+  .utility-bar {
+    position: relative !important;
+    background-color: var(--color-gray-100);
+  }
+  .utility-container {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    padding: 8px 16px !important;
+    gap: 0 !important;
+  }
+  .utility-left {
+    text-align: left !important;
+    width: auto !important;
+    font-size: 11px !important;
+    justify-content: flex-start !important;
+  }
+  .utility-right {
+    text-align: right !important;
+    width: auto !important;
+    font-size: 11px !important;
+    justify-content: flex-end !important;
+  }
+  .navbar {
+    padding-top: 0 !important;
+  }
+  .nav-container, .nike-nav-container {
+    padding: 1rem 16px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+  .nav-left, .nike-nav-left {
+    width: auto !important;
+    justify-content: flex-start !important;
+  }
+  .site-logo {
+    height: 38px !important; 
+  }
+  .nav-actions {
+    gap: 12px !important;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  .nav-links {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 250px;
+    height: 100vh;
+    background-color: var(--color-white);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 80px 30px 30px;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: right 0.3s ease;
+    z-index: 1000;
+  }
+  .nav-links.mobile-open {
+    right: 0 !important;
+  }
+  .nav-links li {
+    margin: 15px 0;
+  }
+  .mobile-close-btn {
+    display: block !important;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 4rem) !important;
+  }
+  .section-title {
+    font-size: 1.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input { width: 100px; }
+  .search-container.active .search-input { width: 130px; }
+  .hero-title {
+    font-size: clamp(1.8rem, 5vw, 3rem) !important;
+  }
+  .hero {
+    height: 60vh !important;
+    min-height: 350px !important;
+  }
+  .nike-product-info h3, .product-info h3 {
+    font-size: 12px !important;
+    margin-bottom: 2px !important;
+  }
+  .nike-product-info p, .product-info p {
+    font-size: 11px !important;
+    margin-bottom: 2px !important;
+  }
+  .nike-price, .price {
+    font-size: 13px !important;
+    margin-top: 4px !important;
+  }
+  .section-title {
+    font-size: 1.4rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+  .nike-product-card {
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+  }
+  .nav-actions {
+    gap: 8px !important;
+  }
+  .site-logo {
+    height: 30px !important;
+  }
+  .icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .icon-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .nav-container, .nike-nav-container {
+    padding: 0.5rem 12px !important;
+  }
+}
+
+

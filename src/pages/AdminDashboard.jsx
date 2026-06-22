@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useProduct } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
 import { useHero } from '../context/HeroContext';
-import { storage } from '../firebase';
+import { storage, db } from '../firebase';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 // --- SVG Icons ---
@@ -351,7 +351,7 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <aside style={{ width: '260px', backgroundColor: '#111', color: '#fff', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '30px 20px', borderBottom: '1px solid #333' }}>
-          <img src="/src/assets/Logo_black.png" alt="Nimasa Tex" style={{ height: '40px', filter: 'invert(1)' }} />
+          <img src="/images/Logo_black.png" alt="Nimasa Tex" style={{ height: '40px', filter: 'invert(1)' }} />
           <p style={{ marginTop: '10px', color: '#888', fontSize: '0.85rem' }}>Admin Workspace</p>
         </div>
         

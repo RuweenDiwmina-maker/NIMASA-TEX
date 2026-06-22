@@ -9,7 +9,17 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  useEffect(() => {
+    // Close mobile menu when route changes
+    setIsMobileMenuOpen(false);
+  }, [location]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,12 +78,13 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
       <div className={navContainerClass}>
         <div className={isHome ? 'nav-left' : 'nike-nav-left'}>
           <Link to="/" className="logo">
-            <img src="/src/assets/full_logo.png" alt="Nimasa Tex Logo" className="site-logo" />
+            <img src="/images/full_logo.png" alt="Nimasa Tex Logo" className="site-logo" />
           </Link>
         </div>
         
         <div className={isHome ? 'nav-center' : 'nike-nav-center'}>
-          <ul className={isHome ? 'nav-links' : 'nav-links nike-nav-links'}>
+          <ul className={`nav-links ${!isHome ? 'nike-nav-links' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+            <button className="mobile-close-btn" onClick={toggleMobileMenu}>&times;</button>
             <li><Link to="/new-releases.html" className={location.pathname === '/new-releases.html' ? 'active' : ''}>New Releases</Link></li>
             <li><Link to="/men.html" className={location.pathname === '/men.html' ? 'active' : ''}>Men</Link></li>
             <li><Link to="/women.html" className={location.pathname === '/women.html' ? 'active' : ''}>Women</Link></li>
@@ -121,6 +132,9 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
                 </span>
               )}
             </Link>
+            <button className="icon-btn mobile-menu-btn" onClick={toggleMobileMenu} title="Menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
           </div>
         </div>
       </div>

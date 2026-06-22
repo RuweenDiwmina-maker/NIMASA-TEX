@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useProduct } from '../context/ProductContext';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const Checkout = () => {
       {/* Minimal Header */}
       <header className="checkout-header">
         <a href="/" className="logo" onClick={(e) => handleLeaveClick(e, '/')}>
-          <img src="/src/assets/Logo_black.png" alt="Nimasa Tex" />
+          <img src="/images/Logo_black.png" alt="Nimasa Tex" />
         </a>
         <div className="checkout-header-actions">
           <a href="/cart.html" style={{ color: 'var(--color-black)' }} onClick={(e) => handleLeaveClick(e, '/cart.html')}>

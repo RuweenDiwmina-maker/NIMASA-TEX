@@ -52,7 +52,7 @@ const AuthModals = ({ isSignInOpen, isJoinUsOpen, closeModals, openSignIn, openJ
         <div className="modal-content">
           <button className="close-modal" onClick={closeModals}>&times;</button>
           <div className="modal-logo">
-            <img src="/src/assets/Logo_black.png" alt="Nimasa Tex Logo" />
+            <img src="/images/Logo_black.png" alt="Nimasa Tex Logo" />
           </div>
           <h2>Sign In</h2>
           <form className="auth-form" onSubmit={handleSignIn}>
@@ -72,7 +72,7 @@ const AuthModals = ({ isSignInOpen, isJoinUsOpen, closeModals, openSignIn, openJ
         <div className="modal-content">
           <button className="close-modal" onClick={closeModals}>&times;</button>
           <div className="modal-logo">
-            <img src="/src/assets/Logo_black.png" alt="Nimasa Tex Logo" />
+            <img src="/images/Logo_black.png" alt="Nimasa Tex Logo" />
           </div>
           <h2>Join Nimasa Tex</h2>
           <form className="auth-form" onSubmit={handleJoin}>

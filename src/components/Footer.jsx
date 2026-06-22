@@ -10,7 +10,7 @@ const Footer = () => {
       <div className="container footer-grid">
         <div className="footer-col">
           <div className="logo">
-            <img src="/src/assets/logo_white.ico" alt="Nimasa Tex Logo" className="site-logo footer-logo" />
+            <img src="/images/logo_white.ico" alt="Nimasa Tex Logo" className="site-logo footer-logo" />
           </div>
           {isHome && <p className="footer-desc">Premium fashion and apparel. Elevating your style every day with high quality fabrics.</p>}
         </div>
