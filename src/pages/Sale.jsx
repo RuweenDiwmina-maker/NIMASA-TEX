@@ -8,7 +8,7 @@ import HeroCarousel from '../components/HeroCarousel';
 
 const Sale = () => {
   const { products: allProducts } = useProduct();
-  const products = allProducts.slice(0, 4);
+  const products = allProducts.filter(p => p.isSale);
   return (
     <>
       <nav className="category-navbar mt-category-nav">

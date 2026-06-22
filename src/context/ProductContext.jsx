@@ -1,4 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const initialProducts = [
   {
@@ -54,36 +56,50 @@ const initialProducts = [
 const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('nimasa_products');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Error parsing saved products", e);
-      }
-    }
-    return initialProducts;
-  });
+  const [products, setProducts] = useState([]); // Start empty, load from Firestore
 
   useEffect(() => {
-    localStorage.setItem('nimasa_products', JSON.stringify(products));
-  }, [products]);
-
-  const addProduct = (product) => {
-    setProducts(prev => {
-      // Find max ID
-      const maxId = prev.reduce((max, p) => Math.max(max, p.id), 0);
-      return [...prev, { ...product, id: maxId + 1 }];
+    const productsCollection = collection(db, 'products');
+    const unsubscribe = onSnapshot(productsCollection, (snapshot) => {
+      if (snapshot.empty) {
+        setProducts([]);
+      } else {
+        const firestoreProducts = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+        // Sort by ID to maintain consistent order
+        firestoreProducts.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+        setProducts(firestoreProducts);
+      }
     });
+
+    return () => unsubscribe();
+  }, []);
+
+  const addProduct = async (product) => {
+    try {
+      const id = Date.now().toString(); // Use timestamp as unique ID
+      await setDoc(doc(db, 'products', id), { ...product, id });
+    } catch (e) {
+      console.error("Error adding product:", e);
+      alert("Failed to add product to database!");
+    }
   };
 
-  const updateProduct = (id, updatedFields) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+  const updateProduct = async (id, updatedFields) => {
+    try {
+      await updateDoc(doc(db, 'products', id.toString()), updatedFields);
+    } catch (e) {
+      console.error("Error updating product:", e);
+      alert("Failed to update product!");
+    }
   };
 
-  const deleteProduct = (id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+  const deleteProduct = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'products', id.toString()));
+    } catch (e) {
+      console.error("Error deleting product:", e);
+      alert("Failed to delete product!");
+    }
   };
 
   return (

@@ -1,4 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const defaultAds = [
   {
@@ -82,26 +84,25 @@ const defaultSettings = {
 const HeroContext = createContext(null);
 
 export const HeroProvider = ({ children }) => {
-  const [ads, setAds] = useState(() => {
-    const savedAds = localStorage.getItem('nimasaAds');
-    // Migration from old heroData
-    const oldHeroData = localStorage.getItem('nimasaHeroData');
-    if (!savedAds && oldHeroData) {
-      const parsedOld = JSON.parse(oldHeroData);
-      const migrated = [{ ...parsedOld, id: 1, targetPage: 'Home' }];
-      ['New Releases', 'Sale', 'Kids', 'Men', 'Women'].forEach(page => {
-        const ad = defaultAds.find(a => a.targetPage === page);
-        if (ad) migrated.push(ad);
-      });
-      return migrated;
-    }
-    if (savedAds) {
-      let parsed = JSON.parse(savedAds);
-      parsed = parsed.map(ad => ad.targetPage ? ad : { ...ad, targetPage: 'Home' });
-      return parsed;
-    }
-    return defaultAds;
-  });
+  const [ads, setAds] = useState([]); // Start empty, will load from Firestore
+
+  useEffect(() => {
+    const adsCollection = collection(db, 'ads');
+    const unsubscribe = onSnapshot(adsCollection, (snapshot) => {
+      if (snapshot.empty) {
+        setAds([]);
+      } else {
+        const firestoreAds = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+        // Ensure backwards compatibility for targetPage -> targetPages
+        const formattedAds = firestoreAds.map(ad => ad.targetPage && !ad.targetPages ? { ...ad, targetPages: [ad.targetPage] } : ad);
+        // Sort by ID to maintain consistent order
+        formattedAds.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+        setAds(formattedAds);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem('nimasaAdSettings');
@@ -109,28 +110,35 @@ export const HeroProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem('nimasaAds', JSON.stringify(ads));
-    } catch (e) {
-      console.error("Failed to save ads to localStorage", e);
-      alert("Error: Storage limit exceeded! Please delete some old ads before saving a new one.");
-    }
-  }, [ads]);
-
-  useEffect(() => {
     localStorage.setItem('nimasaAdSettings', JSON.stringify(settings));
   }, [settings]);
 
-  const addAd = (adData) => {
-    setAds([...ads, { ...adData, id: Date.now() }]);
+  const addAd = async (adData) => {
+    try {
+      const id = Date.now().toString();
+      await setDoc(doc(db, 'ads', id), { ...adData, id });
+    } catch (e) {
+      console.error("Error adding ad:", e);
+      alert("Failed to add ad to database!");
+    }
   };
 
-  const updateAd = (id, adData) => {
-    setAds(ads.map(ad => ad.id === id ? { ...adData, id } : ad));
+  const updateAd = async (id, adData) => {
+    try {
+      await updateDoc(doc(db, 'ads', id.toString()), adData);
+    } catch (e) {
+      console.error("Error updating ad:", e);
+      alert("Failed to update ad!");
+    }
   };
 
-  const deleteAd = (id) => {
-    setAds(ads.filter(ad => ad.id !== id));
+  const deleteAd = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'ads', id.toString()));
+    } catch (e) {
+      console.error("Error deleting ad:", e);
+      alert("Failed to delete ad!");
+    }
   };
 
   const updateSettings = (newSettings) => {

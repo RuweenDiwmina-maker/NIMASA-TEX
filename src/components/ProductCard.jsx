@@ -39,7 +39,12 @@ const ProductCard = ({ product, isNikeStyle = false }) => {
         <div className="nike-product-info">
           <h3 className="text-red">{product.title}</h3>
           <p>{product.category}</p>
-          <p className="nike-price">{product.price}</p>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline' }}>
+            <p className="nike-price" style={{ color: product.isSale ? '#ef4444' : 'inherit' }}>{product.price}</p>
+            {product.isSale && product.originalPrice && (
+              <p style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>{product.originalPrice}</p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -59,7 +64,12 @@ const ProductCard = ({ product, isNikeStyle = false }) => {
       <div className="product-info">
         <h3 className="product-title">{product.title}</h3>
         <p className="product-category">{product.category}</p>
-        <p className="product-price">{product.price}</p>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline' }}>
+          <p className="product-price" style={{ color: product.isSale ? '#ef4444' : 'inherit', margin: 0 }}>{product.price}</p>
+          {product.isSale && product.originalPrice && (
+            <p style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>{product.originalPrice}</p>
+          )}
+        </div>
       </div>
     </div>
   );

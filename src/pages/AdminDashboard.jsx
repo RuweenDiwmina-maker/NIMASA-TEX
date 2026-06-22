@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useProduct } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
 import { useHero } from '../context/HeroContext';
+import { storage } from '../firebase';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 // --- SVG Icons ---
 const SearchIcon = () => (
@@ -98,6 +100,7 @@ const AdminDashboard = () => {
   const [adForm, setAdForm] = useState({
     button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPages: ['Home'], adType: 'custom'
   });
+  const [isUploading, setIsUploading] = useState(false);
   const [autoplayInterval, setAutoplayInterval] = useState(settings.autoplayInterval || 5);
 
   useEffect(() => {
@@ -132,12 +135,14 @@ const AdminDashboard = () => {
         image: product.image,
         hoverImage: product.hoverImage || '',
         isNewRelease: product.isNewRelease || false,
-        newReleaseExpiry: product.newReleaseExpiry || ''
+        newReleaseExpiry: product.newReleaseExpiry || '',
+        isSale: product.isSale || false,
+        originalPrice: product.originalPrice ? product.originalPrice.replace(/[^\d.,]/g, '') : ''
       });
     } else {
       setEditingId(null);
       setFormData({
-        title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: ''
+        title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: '', isSale: false, originalPrice: ''
       });
     }
     setIsModalOpen(true);
@@ -169,12 +174,40 @@ const AdminDashboard = () => {
     setFormData({ ...formData, price: val });
   };
 
+  const handleOriginalPriceChange = (e) => {
+    if (e.target.value === '') {
+      setFormData({ ...formData, originalPrice: '' });
+      return;
+    }
+    let val = e.target.value.replace(/[^0-9.]/g, '');
+    const parts = val.split('.');
+    if (parts.length > 2) val = parts[0] + '.' + parts[1];
+    if (val) {
+      const partsArr = val.split('.');
+      partsArr[0] = partsArr[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      val = partsArr.join('.');
+    }
+    setFormData({ ...formData, originalPrice: val });
+  };
+
   const handleImageUpload = (e, fieldName) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, [fieldName]: reader.result }));
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          
+          // Compress to fit within Firestore 1MB document limit
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          setFormData(prev => ({ ...prev, [fieldName]: compressedDataUrl }));
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
     }
@@ -188,7 +221,20 @@ const AdminDashboard = () => {
       ? formData.price 
       : new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(numericPrice).replace('LKR', 'LKR\u00A0');
 
-    const productDataToSave = { ...formData, price: formattedPrice };
+    let formattedOriginalPrice = '';
+    if (formData.isSale && formData.originalPrice) {
+      const cleanOriginalPriceStr = formData.originalPrice.replace(/,/g, '');
+      const numericOriginalPrice = parseFloat(cleanOriginalPriceStr);
+      formattedOriginalPrice = isNaN(numericOriginalPrice)
+        ? formData.originalPrice
+        : new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(numericOriginalPrice).replace('LKR', 'LKR\u00A0');
+    }
+
+    const productDataToSave = { 
+      ...formData, 
+      price: formattedPrice,
+      originalPrice: formattedOriginalPrice 
+    };
 
     if (editingId) {
       updateProduct(editingId, productDataToSave);
@@ -258,7 +304,7 @@ const AdminDashboard = () => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
           
-          // Compress the image significantly to prevent LocalStorage quota errors
+          // Compress the image significantly to fit well within Firestore 1MB document limit
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
           setAdForm(prev => ({ ...prev, image: compressedDataUrl }));
         };
@@ -270,6 +316,10 @@ const AdminDashboard = () => {
 
   const handleAdSubmit = (e) => {
     e.preventDefault();
+    if (!adForm.image) {
+      alert("කරුණාකර පින්තූරයක් තෝරන්න. (Please select an image)");
+      return;
+    }
     if (editingAdId) {
       updateAd(editingAdId, adForm);
     } else {
@@ -573,12 +623,29 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Price</label>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>{formData.isSale ? 'Offer Price' : 'Price'}</label>
                       <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'white', transition: 'border-color 0.2s' }} onFocus={(e) => e.currentTarget.style.borderColor = '#111'} onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}>
                         <span style={{ padding: '12px 15px', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', borderRight: '1px solid #ddd', fontSize: '0.95rem' }}>LKR</span>
                         <input required type="text" name="price" value={formData.price} onChange={handlePriceChange} placeholder="10,000.00" style={{ width: '100%', padding: '12px 15px', border: 'none', fontSize: '1rem', outline: 'none' }} />
                       </div>
                     </div>
+                  </div>
+
+                  <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: '500', fontSize: '0.95rem', color: '#1e293b' }}>
+                      <input type="checkbox" name="isSale" checked={formData.isSale} onChange={handleChange} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                      Add to "Sale" Category
+                    </label>
+
+                    {formData.isSale && (
+                      <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Original Price (Before Offer)</label>
+                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'white', transition: 'border-color 0.2s' }} onFocus={(e) => e.currentTarget.style.borderColor = '#111'} onBlur={(e) => e.currentTarget.style.borderColor = '#ddd'}>
+                          <span style={{ padding: '12px 15px', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', borderRight: '1px solid #ddd', fontSize: '0.95rem' }}>LKR</span>
+                          <input required type="text" name="originalPrice" value={formData.originalPrice} onChange={handleOriginalPriceChange} placeholder="15,000.00" style={{ width: '100%', padding: '12px 15px', border: 'none', fontSize: '1rem', outline: 'none' }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
