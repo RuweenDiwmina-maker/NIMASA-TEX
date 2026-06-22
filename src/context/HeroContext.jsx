@@ -98,13 +98,6 @@ export const HeroProvider = ({ children }) => {
     if (savedAds) {
       let parsed = JSON.parse(savedAds);
       parsed = parsed.map(ad => ad.targetPage ? ad : { ...ad, targetPage: 'Home' });
-      ['New Releases', 'Sale', 'Kids', 'Men', 'Women'].forEach(page => {
-        const hasAd = parsed.some(ad => ad.targetPage === page);
-        if (!hasAd) {
-          const defaultAd = defaultAds.find(ad => ad.targetPage === page);
-          if (defaultAd) parsed.push(defaultAd);
-        }
-      });
       return parsed;
     }
     return defaultAds;
@@ -116,7 +109,12 @@ export const HeroProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    localStorage.setItem('nimasaAds', JSON.stringify(ads));
+    try {
+      localStorage.setItem('nimasaAds', JSON.stringify(ads));
+    } catch (e) {
+      console.error("Failed to save ads to localStorage", e);
+      alert("Error: Storage limit exceeded! Please delete some old ads before saving a new one.");
+    }
   }, [ads]);
 
   useEffect(() => {

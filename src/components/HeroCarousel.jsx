@@ -7,7 +7,10 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
   const navigate = useNavigate();
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
 
-  const pageAds = ads ? ads.filter(ad => (ad.targetPage || 'Home') === targetPage) : [];
+  const pageAds = ads ? ads.filter(ad => {
+    const pages = ad.targetPages || (ad.targetPage ? [ad.targetPage] : ['Home']);
+    return pages.includes(targetPage);
+  }) : [];
 
   useEffect(() => {
     setCurrentAdIndex(0);

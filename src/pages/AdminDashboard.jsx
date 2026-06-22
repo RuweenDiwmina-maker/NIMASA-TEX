@@ -96,7 +96,7 @@ const AdminDashboard = () => {
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [editingAdId, setEditingAdId] = useState(null);
   const [adForm, setAdForm] = useState({
-    titleLine1: '', titleLine2: '', subtitle: '', image: '', button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPage: 'Home', adType: 'custom'
+    button1Text: '', button1Link: '', button2Text: '', button2Link: '', targetPages: ['Home'], adType: 'custom'
   });
   const [autoplayInterval, setAutoplayInterval] = useState(settings.autoplayInterval || 5);
 
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
       setAdForm({ ...ad });
     } else {
       setEditingAdId(null);
-      setAdForm({ image: '', button1Link: '', targetPage: 'Home', adType: 'full' });
+      setAdForm({ image: '', button1Link: '', targetPages: ['Home'], adType: 'full' });
     }
     setIsAdModalOpen(true);
   };
@@ -223,6 +223,20 @@ const AdminDashboard = () => {
 
   const handleAdChange = (e) => {
     setAdForm({ ...adForm, [e.target.name]: e.target.value });
+  };
+
+  const handleTargetPageToggle = (page) => {
+    setAdForm(prev => {
+      const currentPages = prev.targetPages || (prev.targetPage ? [prev.targetPage] : []);
+      let newPages;
+      if (currentPages.includes(page)) {
+        newPages = currentPages.filter(p => p !== page);
+      } else {
+        newPages = [...currentPages, page];
+      }
+      if (newPages.length === 0) newPages = ['Home']; // Ensure at least one is selected
+      return { ...prev, targetPages: newPages };
+    });
   };
 
   const handleAdImageUpload = (e) => {
@@ -237,7 +251,16 @@ const AdminDashboard = () => {
             e.target.value = '';
             return;
           }
-          setAdForm(prev => ({ ...prev, image: reader.result }));
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          
+          // Compress the image significantly to prevent LocalStorage quota errors
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          setAdForm(prev => ({ ...prev, image: compressedDataUrl }));
         };
         img.src = reader.result;
       };
@@ -493,8 +516,8 @@ const AdminDashboard = () => {
                         <div style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: '500' }}>{ad.titleLine2}</div>
                       </td>
                       <td style={{ padding: '15px 25px' }}>
-                        <span style={{ padding: '5px 10px', backgroundColor: '#e0e7ff', color: '#3730a3', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500' }}>
-                          {ad.targetPage || 'Home'}
+                        <span style={{ padding: '4px 10px', background: '#f0f4ff', color: '#3b82f6', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>
+                          {(ad.targetPages || (ad.targetPage ? [ad.targetPage] : ['Home'])).join(', ')}
                         </span>
                       </td>
                       <td style={{ padding: '15px 25px', textAlign: 'right' }}>
@@ -615,15 +638,21 @@ const AdminDashboard = () => {
                   
 
                   <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Target Page</label>
-                    <select required name="targetPage" value={adForm.targetPage} onChange={handleAdChange} style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none', backgroundColor: 'white', cursor: 'pointer' }}>
-                      <option value="Home">Home</option>
-                      <option value="Men">Men</option>
-                      <option value="Women">Women</option>
-                      <option value="Kids">Kids</option>
-                      <option value="New Releases">New Releases</option>
-                      <option value="Sale">Sale</option>
-                    </select>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Target Pages</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
+                      {['Home', 'Men', 'Women', 'Kids', 'New Releases', 'Sale'].map(page => (
+                        <label key={page} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={(adForm.targetPages || (adForm.targetPage ? [adForm.targetPage] : [])).includes(page)} 
+                            onChange={() => handleTargetPageToggle(page)} 
+                            style={{ cursor: 'pointer' }}
+                          />
+                          {page}
+                        </label>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>Select multiple pages to show this same ad on all of them.</p>
                   </div>
 
                     <div>
