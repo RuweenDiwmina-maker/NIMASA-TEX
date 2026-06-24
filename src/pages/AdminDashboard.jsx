@@ -91,7 +91,8 @@ const AdminDashboard = () => {
   const [editingId, setEditingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
-    title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: ''
+    title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: '',
+    description: '', stock: '', sizes: [], gallery: []
   });
 
   // Ad State
@@ -137,12 +138,17 @@ const AdminDashboard = () => {
         isNewRelease: product.isNewRelease || false,
         newReleaseExpiry: product.newReleaseExpiry || '',
         isSale: product.isSale || false,
-        originalPrice: product.originalPrice ? product.originalPrice.replace(/[^\d.,]/g, '') : ''
+        originalPrice: product.originalPrice ? product.originalPrice.replace(/[^\d.,]/g, '') : '',
+        description: product.description || '',
+        stock: product.stock || '',
+        sizes: product.sizes || [],
+        gallery: product.gallery || []
       });
     } else {
       setEditingId(null);
       setFormData({
-        title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: '', isSale: false, originalPrice: ''
+        title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: '', isSale: false, originalPrice: '',
+        description: '', stock: '', sizes: [], gallery: []
       });
     }
     setIsModalOpen(true);
@@ -211,6 +217,45 @@ const AdminDashboard = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleGalleryUpload = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          setFormData(prev => ({ ...prev, gallery: [...(prev.gallery || []), compressedDataUrl] }));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeGalleryImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index)
+    }));
+  };
+
+  const toggleSize = (size) => {
+    setFormData(prev => {
+      const sizes = prev.sizes || [];
+      if (sizes.includes(size)) {
+        return { ...prev, sizes: sizes.filter(s => s !== size) };
+      } else {
+        return { ...prev, sizes: [...sizes, size] };
+      }
+    });
   };
 
   const handleSubmit = (e) => {
@@ -477,7 +522,16 @@ const AdminDashboard = () => {
                       <td style={{ padding: '15px 25px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                           <img src={product.image} alt={product.title} style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #eee' }} />
-                          <span style={{ fontWeight: '500', color: '#111' }}>{product.title}</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            <span style={{ fontWeight: '500', color: '#111' }}>{product.title}</span>
+                            {product.sizes && product.sizes.length > 0 && (
+                              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                {product.sizes.map(s => (
+                                  <span key={s} style={{ fontSize: '0.75rem', padding: '2px 6px', border: '1px solid #ddd', borderRadius: '4px', color: '#666', backgroundColor: '#fafafa' }}>{s}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td style={{ padding: '15px 25px' }}>
@@ -670,12 +724,49 @@ const AdminDashboard = () => {
                       {formData.image && <img src={formData.image} alt="Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #ddd', marginTop: '10px' }} />}
                     </div>
                   </div>
-                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Description</label>
+                    <textarea name="description" value={formData.description || ''} onChange={handleChange} rows="4" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s', resize: 'vertical' }} onFocus={(e) => e.target.style.borderColor = '#111'} onBlur={(e) => e.target.style.borderColor = '#ddd'} placeholder="Enter product details..." />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '15px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Stock Quantity</label>
+                      <input type="number" name="stock" value={formData.stock || ''} onChange={handleChange} min="0" style={{ width: '100%', padding: '12px 15px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' }} onFocus={(e) => e.target.style.borderColor = '#111'} onBlur={(e) => e.target.style.borderColor = '#ddd'} placeholder="e.g. 50" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Available Sizes</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {['S', 'M', 'L', 'XL', 'XXL', 'Free Size'].map(size => (
+                        <label key={size} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', padding: '5px 10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                          <input type="checkbox" checked={formData.sizes?.includes(size)} onChange={() => toggleSize(size)} />
+                          {size}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Hover Image (Optional)</label>
                     <div style={{ border: '2px dashed #ddd', padding: '20px', borderRadius: '8px', textAlign: 'center', backgroundColor: '#fafafa' }}>
                       <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'hoverImage')} style={{ marginBottom: '10px', width: '100%' }} />
                       {formData.hoverImage && <img src={formData.hoverImage} alt="Hover Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #ddd', marginTop: '10px' }} />}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Gallery Images</label>
+                    <div style={{ border: '2px dashed #ddd', padding: '20px', borderRadius: '8px', textAlign: 'center', backgroundColor: '#fafafa' }}>
+                      <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} style={{ marginBottom: '10px', width: '100%' }} />
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px', justifyContent: 'center' }}>
+                        {formData.gallery?.map((img, idx) => (
+                          <div key={idx} style={{ position: 'relative' }}>
+                            <img src={img} alt="Gallery Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #ddd' }} />
+                            <button type="button" onClick={() => removeGalleryImage(idx)} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&times;</button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   

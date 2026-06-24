@@ -14,6 +14,9 @@ import Shipping from './pages/Shipping';
 import Help from './pages/Help';
 import Checkout from './pages/Checkout';
 import AdminDashboard from './pages/AdminDashboard';
+import Wishlist from './pages/Wishlist';
+import UserProfile from './pages/UserProfile';
+import ProductDetails from './pages/ProductDetails';
 import { HeroProvider } from './context/HeroContext';
 
 function App() {
@@ -44,6 +47,7 @@ function App() {
   const isHome = location.pathname === '/';
   const isCheckout = location.pathname === '/checkout';
   const isAdmin = location.pathname === '/admin';
+  const isProfile = location.pathname === '/profile';
   const hideNavFooter = isCheckout || isAdmin;
 
   return (
@@ -53,12 +57,15 @@ function App() {
       
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/men.html" element={<Men />} />
         <Route path="/women.html" element={<Women />} />
         <Route path="/kids.html" element={<Kids />} />
         <Route path="/sale.html" element={<Sale />} />
         <Route path="/new-releases.html" element={<NewReleases />} />
         <Route path="/cart.html" element={<Cart openSignIn={openSignIn} />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/profile" element={<UserProfile />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/shipping.html" element={<Shipping />} />

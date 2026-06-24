@@ -411,15 +411,126 @@ ul {
   background: var(--color-gray-100);
 }
 
-.product-image-wrap img {
+.product-image-wrap img.primary-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: var(--transition);
+  transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
-.product-card:hover .product-image-wrap img {
-  transform: scale(1.05);
+.product-image-wrap img.hover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: 2;
+}
+
+.product-card:hover .primary-img,
+.nike-product-card:hover .primary-img {
+  opacity: 0;
+}
+
+.product-card:hover .hover-img,
+.nike-product-card:hover .hover-img {
+  opacity: 1;
+}
+
+.hover-actions-top-right {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.3s ease;
+}
+
+.product-card:hover .hover-actions-top-right,
+.nike-product-card:hover .hover-actions-top-right {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.hover-icon-btn {
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  color: var(--color-black);
+  position: relative;
+}
+
+.hover-icon-btn:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.hover-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.quick-view-text {
+  position: absolute;
+  right: 45px;
+  background-color: var(--color-black);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.hover-icon-btn.quick-view-btn:hover .quick-view-text {
+  opacity: 1;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+}
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10;
 }
 
 .product-actions {
@@ -823,10 +934,25 @@ ul {
 .nike-product-card:hover .product-actions {
   bottom: 0;
 }
-.nike-product-img-wrap img {
+.nike-product-img-wrap img.primary-img {
   width: 100%;
   height: auto;
   display: block;
+  transition: opacity 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+.nike-product-img-wrap img.hover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: 2;
 }
 .nike-product-info h3 {
   font-size: 16px;
@@ -2060,4 +2186,49 @@ ul {
   }
 }
 
+
+.product-sizes-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.product-size-box {
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  background-color: #fff;
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.product-size-box:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.badge-count {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
 
