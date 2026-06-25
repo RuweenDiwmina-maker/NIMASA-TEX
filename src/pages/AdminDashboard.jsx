@@ -4,6 +4,7 @@ import { useProduct } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
 import { useHero } from '../context/HeroContext';
 import { storage, db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 // --- SVG Icons ---
@@ -61,6 +62,12 @@ const ImageIcon = () => (
   </svg>
 );
 
+const UsersIcon = () => (
+  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+  </svg>
+);
+
 const ClockIcon = () => (
   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -79,7 +86,7 @@ const formatPrice = (num) => {
 
 // --- Main Component ---
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, resetPassword } = useAuth();
   const navigate = useNavigate();
   const { products, addProduct, updateProduct, deleteProduct } = useProduct();
   const { ads, settings, addAd, updateAd, deleteAd, updateSettings } = useHero();
@@ -94,6 +101,30 @@ const AdminDashboard = () => {
     title: '', category: '', price: '', image: '', hoverImage: '', isNewRelease: false, newReleaseExpiry: '',
     description: '', stock: '', sizes: [], gallery: []
   });
+
+  const [dbUsers, setDbUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'users' && dbUsers.length === 0) {
+      const fetchUsers = async () => {
+        setLoadingUsers(true);
+        try {
+          const querySnapshot = await getDocs(collection(db, "users"));
+          const usersList = [];
+          querySnapshot.forEach((doc) => {
+            usersList.push({ id: doc.id, ...doc.data() });
+          });
+          setDbUsers(usersList);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        } finally {
+          setLoadingUsers(false);
+        }
+      };
+      fetchUsers();
+    }
+  }, [activeTab]);
 
   // Ad State
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -409,6 +440,10 @@ const AdminDashboard = () => {
             <ImageIcon />
             <span style={{ fontWeight: '500' }}>Ads / Banners</span>
           </div>
+          <div onClick={() => setActiveTab('users')} style={{ padding: '12px 20px', backgroundColor: activeTab === 'users' ? '#222' : 'transparent', borderLeft: activeTab === 'users' ? '4px solid #fff' : '4px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', transition: 'background-color 0.2s', marginTop: '5px' }}>
+            <UsersIcon />
+            <span style={{ fontWeight: '500' }}>Users</span>
+          </div>
         </nav>
 
         <div style={{ padding: '20px', borderTop: '1px solid #333' }}>
@@ -425,10 +460,12 @@ const AdminDashboard = () => {
         {/* Top Header */}
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#111', margin: 0 }}>
-              {activeTab === 'products' ? 'Product Inventory' : 'Advertisement Management'}
+            <h1 style={{ fontSize: '1.8rem', fontWeight: '700', margin: '0 0 5px 0' }}>
+              {activeTab === 'products' ? 'Product Inventory' : activeTab === 'ads' ? 'Advertisement Management' : 'Registered Users'}
             </h1>
-            <p style={{ color: '#666', marginTop: '5px' }}>Welcome back, System Admin.</p>
+            <p style={{ color: '#666', margin: 0 }}>
+              {activeTab === 'products' ? 'Manage your store products and categories.' : activeTab === 'ads' ? 'Manage your homepage hero banners.' : 'View details of users who have registered on the web.'}
+            </p>
           </div>
           <div style={{ display: 'flex', gap: '15px' }}>
             <Link to="/" style={{ padding: '10px 20px', backgroundColor: '#fff', color: '#111', border: '1px solid #ddd', borderRadius: '8px', textDecoration: 'none', fontWeight: '500', display: 'flex', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
@@ -458,8 +495,8 @@ const AdminDashboard = () => {
             {/* Stats Widgets */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
               <div style={{ backgroundColor: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '12px', backgroundColor: '#f0f4ff', color: '#3b82f6', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <BoxIcon />
+                <div style={{ width: '60px', height: '60px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderRadius: '12px' }}>
+                  <img src="/images/icon_box.png" alt="Products" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div>
                   <p style={{ color: '#666', fontSize: '0.9rem', margin: '0 0 5px 0' }}>Total Products</p>
@@ -468,8 +505,8 @@ const AdminDashboard = () => {
               </div>
               
               <div style={{ backgroundColor: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '12px', backgroundColor: '#fff0f5', color: '#ec4899', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <TagsIcon />
+                <div style={{ width: '60px', height: '60px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderRadius: '12px' }}>
+                  <img src="/images/icon_tag.png" alt="Categories" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div>
                   <p style={{ color: '#666', fontSize: '0.9rem', margin: '0 0 5px 0' }}>Categories</p>
@@ -478,8 +515,8 @@ const AdminDashboard = () => {
               </div>
 
               <div style={{ backgroundColor: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '12px', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <DollarIcon />
+                <div style={{ width: '60px', height: '60px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderRadius: '12px' }}>
+                  <img src="/images/icon_coin.png" alt="Value" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div>
                   <p style={{ color: '#666', fontSize: '0.9rem', margin: '0 0 5px 0' }}>Est. Inventory Value</p>
@@ -645,6 +682,91 @@ const AdminDashboard = () => {
               </table>
             </div>
 
+          </div>
+        )}
+
+        {/* Users Management View */}
+        {activeTab === 'users' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+            <div style={{ backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+              <div style={{ padding: '20px 25px', borderBottom: '1px solid #eee' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0 }}>Registered Users</h2>
+              </div>
+              
+              {loadingUsers ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>Loading users...</div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #eee', textAlign: 'left', color: '#555', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <th style={{ padding: '15px 25px', fontWeight: '600' }}>Name</th>
+                        <th style={{ padding: '15px 25px', fontWeight: '600' }}>Email</th>
+                        <th style={{ padding: '15px 25px', fontWeight: '600' }}>Role</th>
+                        <th style={{ padding: '15px 25px', fontWeight: '600' }}>Joined On</th>
+                        <th style={{ padding: '15px 25px', fontWeight: '600', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dbUsers.map((u) => (
+                        <tr key={u.id} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                          <td style={{ padding: '15px 25px', fontWeight: '500', color: '#111' }}>
+                            {u.name || 'Unknown'}
+                          </td>
+                          <td style={{ padding: '15px 25px', color: '#555' }}>
+                            {u.email}
+                          </td>
+                          <td style={{ padding: '15px 25px' }}>
+                            <span style={{ 
+                              padding: '4px 10px', 
+                              backgroundColor: u.role === 'admin' ? '#fee2e2' : '#f0f4ff', 
+                              color: u.role === 'admin' ? '#ef4444' : '#3b82f6', 
+                              borderRadius: '20px', 
+                              fontSize: '0.8rem', 
+                              fontWeight: '600' 
+                            }}>
+                              {u.role === 'admin' ? 'Admin' : 'User'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '15px 25px', color: '#888', fontSize: '0.9rem' }}>
+                            {u.createdAt && u.createdAt.seconds 
+                              ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() 
+                              : 'N/A'}
+                          </td>
+                          <td style={{ padding: '15px 25px', textAlign: 'right' }}>
+                            <button 
+                              onClick={async () => {
+                                if (window.confirm(`Send password reset email to ${u.email}?`)) {
+                                  try {
+                                    await resetPassword(u.email);
+                                    alert('Password reset email sent successfully!');
+                                  } catch (err) {
+                                    alert('Failed to send reset email. ' + err.message);
+                                  }
+                                }
+                              }}
+                              title="Send Password Reset Email" 
+                              style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: '#fff', color: '#111', cursor: 'pointer', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '500', transition: 'all 0.2s' }} 
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; }} 
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                            >
+                              Reset Password
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {dbUsers.length === 0 && (
+                        <tr>
+                          <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+                            No users found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   /* Colors */
   --color-primary: #e60000;
   --color-primary-dark: #cc0000;
@@ -654,9 +654,10 @@ ul {
 
 .nike-section-title {
   font-family: 'Inter', sans-serif;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 500;
-  margin-bottom: 24px;
+  margin-top: 60px;
+  margin-bottom: 40px;
   text-transform: none;
 }
 
@@ -890,8 +891,8 @@ ul {
 .nike-product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  padding-bottom: 20px;
+  gap: 24px;
+  padding-bottom: 40px;
 }
 
 @media (max-width: 1024px) {
@@ -1332,6 +1333,144 @@ ul {
 /* =========================================================================
    CART PAGE STYLES
    ========================================================================= */
+
+/* =========================================================================
+   PRODUCT LISTING TOOLBAR & PAGINATION
+   ========================================================================= */
+
+.product-listing-container {
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+.product-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: 15px 0;
+  margin-bottom: 30px;
+  font-family: 'Inter', sans-serif;
+}
+
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.toolbar-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.view-icons {
+  display: flex;
+  gap: 5px;
+}
+
+.view-icons button {
+  background: transparent;
+  border: 1px solid var(--color-gray-300);
+  padding: 5px;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.view-icons button:hover,
+.view-icons button.active {
+  color: var(--color-black);
+  border-color: var(--color-black);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-select {
+  border: 1px solid var(--color-gray-300);
+  padding: 8px 30px 8px 10px;
+  font-size: 14px;
+  color: var(--color-black);
+  background-color: var(--color-white);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+}
+
+.toolbar-select:focus {
+  border-color: var(--color-black);
+}
+
+.dynamic-grid {
+  grid-template-columns: repeat(var(--col-count, 4), 1fr) !important;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 40px 0;
+  gap: 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.pagination button {
+  background: var(--color-black);
+  color: var(--color-white);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.pagination button:disabled {
+  background: var(--color-gray-300);
+  cursor: not-allowed;
+}
+
+.pagination button:not(:disabled):hover {
+  opacity: 0.8;
+}
+
+.page-info {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+}
+
+@media (max-width: 768px) {
+  .product-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  .toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .dynamic-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 .cart-page-container {
   max-width: 1200px;
   margin: 0 auto;

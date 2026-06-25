@@ -8,6 +8,7 @@ import Men from './pages/Men';
 import Women from './pages/Women';
 import Kids from './pages/Kids';
 import Sale from './pages/Sale';
+import Accessories from './pages/Accessories';
 import NewReleases from './pages/NewReleases';
 import Cart from './pages/Cart';
 import Shipping from './pages/Shipping';
@@ -62,6 +63,7 @@ function App() {
         <Route path="/women.html" element={<Women />} />
         <Route path="/kids.html" element={<Kids />} />
         <Route path="/sale.html" element={<Sale />} />
+        <Route path="/accessories.html" element={<Accessories />} />
         <Route path="/new-releases.html" element={<NewReleases />} />
         <Route path="/cart.html" element={<Cart openSignIn={openSignIn} />} />
         <Route path="/wishlist" element={<Wishlist />} />

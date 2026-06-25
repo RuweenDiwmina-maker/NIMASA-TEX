@@ -4,7 +4,11 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendEmailVerification
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -74,6 +78,10 @@ export const AuthProvider = ({ children }) => {
         role: role,
         createdAt: new Date()
       });
+      
+      // Send verification email
+      await sendEmailVerification(newUser);
+      
       return true;
     } catch (error) {
       console.error("Registration error:", error);
@@ -89,8 +97,54 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resetPassword = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return true;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+
+      // Check if user exists in Firestore, if not create them
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        const role = firebaseUser.email?.toLowerCase() === 'aaa@gmail.com' ? 'admin' : 'user';
+        await setDoc(userDocRef, {
+          name: firebaseUser.displayName || 'Google User',
+          email: firebaseUser.email?.toLowerCase() || '',
+          role: role,
+          createdAt: new Date()
+        });
+      }
+      return true;
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    login,
+    register,
+    logout,
+    resetPassword,
+    signInWithGoogle,
+    loading
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {!loading && children}
     </AuthContext.Provider>
   );

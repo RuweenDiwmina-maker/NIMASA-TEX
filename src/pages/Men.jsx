@@ -2,8 +2,8 @@ import React from 'react';
 import { useProduct } from '../context/ProductContext';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import ProductListing from '../components/ProductListing';
 import HeroCarousel from '../components/HeroCarousel';
-
 
 
 const Men = () => {
@@ -20,11 +20,8 @@ const Men = () => {
 
       <HeroCarousel targetPage="Men" />
 
-      <main className="container" style={{maxWidth: '1920px', padding: '0 48px'}}>
-        <h2 className="nike-section-title">Latest & Greatest</h2>
-        <div className="nike-product-grid">
-          {menProducts.map(p => <ProductCard key={p.id} product={p} isNikeStyle={true} />)}
-        </div>
+      <main>
+        <ProductListing products={menProducts} title="Latest & Greatest" />
       </main>
     </>
   );

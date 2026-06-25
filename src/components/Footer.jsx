@@ -21,7 +21,8 @@ const Footer = () => {
             <li><Link to="/women.html">Women's Clothing</Link></li>
             <li><Link to="/kids.html">Kids & Baby</Link></li>
             <li><Link to="/new-releases.html">New Releases</Link></li>
-            <li><Link to="/sale.html">Sale</Link></li>
+            <li><Link to="/accessories.html">Accessories</Link></li>
+            <li><Link to="/sale.html">Offer</Link></li>
           </ul>
         </div>
         <div className="footer-col">

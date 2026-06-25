@@ -36,7 +36,7 @@ const HeroCarousel = ({ targetPage = 'Home' }) => {
       height: 'auto', 
       minHeight: 'auto', 
       display: 'block',
-      marginTop: '119px',
+      marginTop: targetPage === 'Home' ? '119px' : '0px',
       overflow: 'hidden'
     }}>
       {pageAds.map((ad, index) => {

@@ -4,7 +4,7 @@ import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB9Yv3l7l6b_ONzneukkVhFf50INXIwu0o",
+  apiKey: "AIzaSyB9Yv31716b_ONzneukkVhFf50INXIwu0o",
   authDomain: "nimasa-tex-e19b9.firebaseapp.com",
   projectId: "nimasa-tex-e19b9",
   storageBucket: "nimasa-tex-e19b9.firebasestorage.app",
