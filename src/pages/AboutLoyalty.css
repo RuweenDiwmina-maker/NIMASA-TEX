@@ -1,0 +1,81 @@
+.about-loyalty-page {
+  padding: 60px 0;
+  background-color: var(--color-white, #ffffff);
+  color: var(--color-black, #111111);
+  min-height: 80vh;
+}
+
+.about-loyalty-page .container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.about-loyalty-page .page-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  letter-spacing: 1px;
+  border-bottom: 3px solid var(--color-primary, #e60000);
+  padding-bottom: 15px;
+  display: inline-block;
+}
+
+.about-loyalty-page .content-section {
+  margin-bottom: 40px;
+}
+
+.about-loyalty-page .content-section h2 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: var(--color-black, #111111);
+  text-transform: uppercase;
+}
+
+.about-loyalty-page .content-section p {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 15px;
+}
+
+.about-loyalty-page .content-section strong {
+  color: var(--color-black, #111111);
+  font-weight: 700;
+}
+
+.about-loyalty-page .content-section ul,
+.about-loyalty-page .content-section ol {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #444;
+  padding-left: 20px;
+  margin-bottom: 15px;
+}
+
+.about-loyalty-page .content-section li {
+  margin-bottom: 10px;
+}
+
+.about-loyalty-page .content-section ul ul {
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.about-loyalty-page .customer-support {
+  background: #f9f9f9;
+  padding: 25px;
+  border-radius: 12px;
+  border-left: 4px solid var(--color-primary, #e60000);
+}
+
+.about-loyalty-page .customer-support ul {
+  list-style: none;
+  padding-left: 0;
+}

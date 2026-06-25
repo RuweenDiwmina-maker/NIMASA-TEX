@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AuthModals from './components/AuthModals';
+import RewardsPopup from './components/RewardsPopup';
 import Home from './pages/Home';
 import Men from './pages/Men';
 import Women from './pages/Women';
@@ -18,6 +19,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Wishlist from './pages/Wishlist';
 import UserProfile from './pages/UserProfile';
 import ProductDetails from './pages/ProductDetails';
+import AboutLoyalty from './pages/AboutLoyalty';
 import { HeroProvider } from './context/HeroContext';
 
 function App() {
@@ -72,6 +74,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/shipping.html" element={<Shipping />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/about-loyalty" element={<AboutLoyalty />} />
       </Routes>
 
       {!hideNavFooter && <Footer />}
@@ -82,6 +85,7 @@ function App() {
           openSignIn={openSignIn} 
           openJoinUs={openJoinUs} 
         />
+        {!hideNavFooter && <RewardsPopup openSignIn={openSignIn} openJoinUs={openJoinUs} />}
       </div>
     </HeroProvider>
   );

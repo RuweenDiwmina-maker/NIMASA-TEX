@@ -10,7 +10,7 @@ import {
   signInWithPopup,
   sendEmailVerification
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -30,7 +30,9 @@ export const AuthProvider = ({ children }) => {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               name: userData.name,
-              role: userData.role
+              role: userData.role,
+              points: userData.points || 0,
+              isLoyaltyMember: userData.isLoyaltyMember || false
             });
           } else {
             // Fallback if no doc exists
@@ -38,7 +40,9 @@ export const AuthProvider = ({ children }) => {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               name: 'User',
-              role: 'user'
+              role: 'user',
+              points: 0,
+              isLoyaltyMember: false
             });
           }
         } catch (error) {
@@ -76,6 +80,8 @@ export const AuthProvider = ({ children }) => {
         name: name || 'User',
         email: email.toLowerCase(),
         role: role,
+        points: 0,
+        isLoyaltyMember: false,
         createdAt: new Date()
       });
       
@@ -123,6 +129,8 @@ export const AuthProvider = ({ children }) => {
           name: firebaseUser.displayName || 'Google User',
           email: firebaseUser.email?.toLowerCase() || '',
           role: role,
+          points: 0,
+          isLoyaltyMember: false,
           createdAt: new Date()
         });
       }
@@ -133,6 +141,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserPoints = async (uid, newPoints) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, { points: newPoints });
+      // Update local state
+      setUser(prev => ({ ...prev, points: newPoints }));
+    } catch (error) {
+      console.error("Error updating points:", error);
+    }
+  };
+
+  const joinLoyaltyProgram = async (uid) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, { isLoyaltyMember: true });
+      // Update local state
+      setUser(prev => ({ ...prev, isLoyaltyMember: true }));
+      return true;
+    } catch (error) {
+      console.error("Error joining loyalty program:", error);
+      return false;
+    }
+  };
+
   const value = {
     user,
     login,
@@ -140,6 +172,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     resetPassword,
     signInWithGoogle,
+    updateUserPoints,
+    joinLoyaltyProgram,
     loading
   };
 

@@ -92,7 +92,7 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
             <li><Link to="/women.html" className={location.pathname === '/women.html' ? 'active' : ''}>Women</Link></li>
             <li><Link to="/kids.html" className={location.pathname === '/kids.html' ? 'active' : ''}>Kids</Link></li>
             <li><Link to="/accessories.html" className={location.pathname === '/accessories.html' ? 'active' : ''}>Accessories</Link></li>
-            <li><Link to="/sale.html" className={location.pathname === '/sale.html' ? 'active' : ''}>Offer</Link></li>
+            <li><Link to="/sale.html" className={location.pathname === '/sale.html' ? 'active' : ''}>Sale</Link></li>
           </ul>
         </div>
 

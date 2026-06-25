@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useProduct } from '../context/ProductContext';
+import { useAuth } from '../context/AuthContext';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, totalItems } = useCart();
+  const { user, updateUserPoints } = useAuth();
   
   const [deliveryMethod, setDeliveryMethod] = useState('deliver');
   const [shippingOption, setShippingOption] = useState('standard');
@@ -13,6 +15,7 @@ const Checkout = () => {
   const [formValid, setFormValid] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [targetRoute, setTargetRoute] = useState('');
+  const [usePoints, setUsePoints] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -36,7 +39,11 @@ const Checkout = () => {
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = shippingOption === 'standard' ? 500 : 1000;
-  const total = subtotal + deliveryFee;
+  
+  const userPoints = user?.isLoyaltyMember ? (user?.points || 0) : 0;
+  const pointsDiscount = (user?.isLoyaltyMember && usePoints) ? Math.min(userPoints, subtotal) : 0;
+  const total = subtotal + deliveryFee - pointsDiscount;
+  const earnedPoints = user?.isLoyaltyMember ? Math.floor((subtotal - pointsDiscount) / 100) : 0;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(price);
@@ -46,9 +53,13 @@ const Checkout = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (formValid) {
-      alert("Order placed successfully! Thank you for shopping with Nimasa Tex.");
+      if (user && user.isLoyaltyMember) {
+        const finalPoints = userPoints - pointsDiscount + earnedPoints;
+        await updateUserPoints(user.uid, finalPoints);
+      }
+      alert(`Order placed successfully!${user?.isLoyaltyMember ? ` You earned ${earnedPoints} points.` : ''} Thank you for shopping with Nimasa Tex.`);
       // In a real app, you would clear cart and navigate to a success page here
     }
   };
@@ -85,6 +96,11 @@ const Checkout = () => {
             <span>Summary</span>
             <span className="summary-accordion-price">{formatPrice(total)} ({totalItems} item{totalItems !== 1 && 's'}) ▾</span>
           </div>
+          {usePoints && (
+            <div style={{ color: '#00C896', fontSize: '0.9rem', marginBottom: '10px' }}>
+              Points Discount Applied: -{formatPrice(pointsDiscount)}
+            </div>
+          )}
           <div className="summary-free-shipping">
             Add {formatPrice(15000)} more to earn Free Shipping!
           </div>
@@ -196,6 +212,34 @@ const Checkout = () => {
             <button className="btn-apply">Apply</button>
           </div>
           <div className="input-helper-text" style={{ marginTop: '-1.5rem', marginBottom: '2rem' }}>Limit 1 promo per order.</div>
+
+          {user && user.isLoyaltyMember && (
+            <div className="points-redemption-box" style={{ padding: '1.2rem', border: '1px solid var(--color-gray-200)', borderRadius: '8px', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <span style={{ fontWeight: 600 }}>Loyalty Points</span>
+                <span style={{ fontWeight: 700, color: '#00C896' }}>{userPoints} Available</span>
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-gray-600)', marginBottom: '1rem' }}>
+                You can use your points for a discount! (1 Point = 1 LKR). 
+                You will also earn <strong>{earnedPoints} points</strong> on this order.
+              </p>
+              {userPoints > 0 ? (
+                <div className="checkbox-group" style={{ marginBottom: 0 }}>
+                  <input 
+                    type="checkbox" 
+                    id="usePoints" 
+                    checked={usePoints} 
+                    onChange={(e) => setUsePoints(e.target.checked)} 
+                  />
+                  <label htmlFor="usePoints">Use points for {formatPrice(Math.min(userPoints, subtotal))} discount</label>
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.85rem', color: 'var(--color-gray-500)', fontStyle: 'italic' }}>
+                  No points available to redeem yet.
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="payment-methods-group">
             <div 

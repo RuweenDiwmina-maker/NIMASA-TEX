@@ -14,7 +14,7 @@ const Sale = () => {
     <>
       <nav className="category-navbar mt-category-nav">
         <div className="cat-nav-container">
-          <div className="cat-title">Offer</div>
+          <div className="cat-title">Sale</div>
           
         </div>
       </nav>

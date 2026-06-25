@@ -67,6 +67,15 @@ const UserProfile = () => {
                 }}>
                   {user.role}
                 </span>
+                {user.isLoyaltyMember && (
+                  <span style={{ 
+                    background: '#00C896', color: '#111', padding: '3px 10px', 
+                    borderRadius: '20px', fontSize: '0.75rem', fontWeight: '700',
+                    letterSpacing: '0.5px'
+                  }}>
+                    ★ {user.points || 0} Points
+                  </span>
+                )}
               </div>
             </div>
           </div>
