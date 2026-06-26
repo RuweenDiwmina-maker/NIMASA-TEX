@@ -132,6 +132,18 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    if (isModalOpen || isAdModalOpen || selectedUserForHistory) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen, isAdModalOpen, selectedUserForHistory]);
+
   // Ad State
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [editingAdId, setEditingAdId] = useState(null);
@@ -865,7 +877,7 @@ const AdminDashboard = () => {
                 <button onClick={handleCloseModal} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', color: '#888', cursor: 'pointer' }}>&times;</button>
               </div>
               
-              <div style={{ padding: '30px', maxHeight: '70vh', overflowY: 'auto' }}>
+              <div style={{ padding: '30px', maxHeight: '70vh', overflowY: 'auto', overscrollBehavior: 'contain' }}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Title</label>
@@ -997,7 +1009,7 @@ const AdminDashboard = () => {
                 <button onClick={handleCloseAdModal} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', color: '#888', cursor: 'pointer' }}>&times;</button>
               </div>
               
-              <div style={{ padding: '30px', maxHeight: '70vh', overflowY: 'auto' }}>
+              <div style={{ padding: '30px', maxHeight: '70vh', overflowY: 'auto', overscrollBehavior: 'contain' }}>
                 <form onSubmit={handleAdSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   
 

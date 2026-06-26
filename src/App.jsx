@@ -13,6 +13,7 @@ import Accessories from './pages/Accessories';
 import NewReleases from './pages/NewReleases';
 import Cart from './pages/Cart';
 import Shipping from './pages/Shipping';
+import Returns from './pages/Returns';
 import Help from './pages/Help';
 import Checkout from './pages/Checkout';
 import AdminDashboard from './pages/AdminDashboard';
@@ -73,6 +74,7 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/shipping.html" element={<Shipping />} />
+        <Route path="/returns.html" element={<Returns />} />
         <Route path="/help" element={<Help />} />
         <Route path="/about-loyalty" element={<AboutLoyalty />} />
       </Routes>

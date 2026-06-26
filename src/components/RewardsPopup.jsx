@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import './RewardsPopup.css';
 
 const RewardsPopup = ({ openSignIn, openJoinUs }) => {
-  const { user, joinLoyaltyProgram } = useAuth();
+  const { user, joinLoyaltyProgram, updateUserProfile } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -38,6 +38,18 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
     }
   }, [activeView, user]);
 
+  // Lock body scroll when popup is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const togglePopup = () => {
     if (isOpen) {
       setActiveView('main');
@@ -63,7 +75,9 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
   };
 
   return (
-    <div className="rewards-container">
+    <>
+      {isOpen && <div className="rewards-overlay" onClick={togglePopup}></div>}
+      <div className="rewards-container">
       {isOpen && (
         <div className={`rewards-panel ${isOpen ? 'open' : ''}`}>
           <div className="rewards-header">
@@ -110,24 +124,38 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
                    <h4>{user.name || 'User'}</h4>
                    <p>{user.email}</p>
                 </div>
-                <form className="profile-form" onSubmit={(e) => e.preventDefault()}>
+                <form className="profile-form" onSubmit={async (e) => {
+                  e.preventDefault();
+                  const firstName = e.target[0].value;
+                  const lastName = e.target[1].value;
+                  const phone = e.target[2].value;
+                  const birthday = e.target[3].value;
+                  if (firstName && lastName && phone && birthday) {
+                    await updateUserProfile(user.uid, {
+                      name: `${firstName} ${lastName}`,
+                      phone,
+                      birthday
+                    });
+                    setActiveView('main');
+                  }
+                }}>
                   <div className="form-group">
                     <label>First Name</label>
-                    <input type="text" defaultValue={user.name ? user.name.split(' ')[0] : ''} />
+                    <input type="text" defaultValue={user.name ? user.name.split(' ')[0] : ''} required />
                   </div>
                   <div className="form-group">
                     <label>Last Name</label>
-                    <input type="text" defaultValue={user.name ? user.name.split(' ').slice(1).join(' ') : ''} />
+                    <input type="text" defaultValue={user.name ? user.name.split(' ').slice(1).join(' ') : ''} required />
                   </div>
                   <div className="form-group">
                     <label>Phone</label>
-                    <input type="tel" placeholder="Phone number" />
+                    <input type="tel" placeholder="Phone number" defaultValue={user.phone || ''} required />
                   </div>
                   <div className="form-group">
                     <label>Birthday</label>
-                    <input type="date" />
+                    <input type="date" defaultValue={user.birthday || ''} required />
                   </div>
-                  <button className="btn-rewards-primary">Save Profile</button>
+                  <button type="submit" className="btn-rewards-primary">Save Profile</button>
                 </form>
               </div>
             ) : activeView === 'redeem' ? (
@@ -208,7 +236,7 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
                     { text: 'My Rewards', icon: '🏆', view: 'rewards' },
                     { text: 'Earn Points', icon: '💰', view: 'main' },
                     { text: 'About Loyalty Program', icon: 'ℹ️', view: 'about' }
-                  ].map((item, index) => (
+                  ].filter(item => !(item.view === 'profile' && user.name && user.phone && user.birthday)).map((item, index) => (
                     <button 
                       key={index} 
                       className="rewards-menu-item" 
@@ -241,6 +269,7 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
         Rewards
       </button>
     </div>
+    </>
   );
 };
 

@@ -82,11 +82,16 @@ const ProductCard = ({ product, isNikeStyle = false }) => {
         <div className={isNikeStyle ? "nike-product-info" : "product-info"}>
           <h3 className={isNikeStyle ? "text-red" : "product-title"}>{product.title}</h3>
           <p className={isNikeStyle ? "" : "product-category"}>{product.category}</p>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'baseline', justifyContent: isNikeStyle ? 'flex-start' : 'center' }}>
+          <div className="price-scroll-container" style={{ width: '100%', overflow: 'hidden', position: 'relative', minHeight: '24px', display: 'flex', alignItems: 'center', justifyContent: isNikeStyle ? 'flex-start' : 'center' }}>
+            <div 
+              className={`price-scroll-content ${((product.price?.length || 0) + (product.originalPrice?.length || 0)) > 18 ? 'price-scroll-active' : ''}`}
+              style={{ display: 'flex', gap: '10px', alignItems: 'baseline', justifyContent: isNikeStyle ? 'flex-start' : 'center', whiteSpace: 'nowrap' }}
+            >
             <p className={isNikeStyle ? "nike-price" : "product-price"} style={{ color: product.isSale ? '#ef4444' : 'inherit', margin: 0 }}>{product.price}</p>
             {product.isSale && product.originalPrice && (
               <p style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>{product.originalPrice}</p>
             )}
+            </div>
           </div>
           {product.sizes && product.sizes.length > 0 && (
             <div className="product-sizes-container">

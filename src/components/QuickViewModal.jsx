@@ -14,7 +14,13 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
     if (isOpen) {
       setQuantity(1);
       setAdded(false);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   if (!isOpen || !product) return null;
@@ -59,7 +65,8 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
     <div className="modal-overlay active" onClick={onClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backgroundColor: 'rgba(0,0,0,0.5)' }}>
       <div className="modal-content" onClick={e => e.stopPropagation()} style={{ 
         maxWidth: '900px', width: '90%', display: 'flex', padding: 0, overflow: 'hidden', backgroundColor: '#fff',
-        flexDirection: window.innerWidth < 768 ? 'column' : 'row'
+        flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+        maxHeight: '90vh', overflowY: 'auto', overscrollBehavior: 'contain'
       }}>
         <button className="modal-close" onClick={onClose} style={{ position: 'absolute', top: '15px', right: '15px', fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>&times;</button>
         

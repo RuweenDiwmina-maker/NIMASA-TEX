@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProduct } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -50,6 +50,17 @@ const ProductDetails = () => {
 
   const numericPrice = Number((product.price || "0").replace(/[^0-9.-]+/g, ""));
 
+  const getCategoryLink = (category) => {
+    if (!category) return "/products.html";
+    const lower = category.toLowerCase();
+    if (lower.includes('men') && !lower.includes('women')) return "/men.html";
+    if (lower.includes('women')) return "/women.html";
+    if (lower.includes('kid')) return "/kids.html";
+    if (lower.includes('accessor')) return "/accessories.html";
+    if (lower.includes('sale')) return "/sale.html";
+    return "/products.html";
+  };
+
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
@@ -75,36 +86,28 @@ const ProductDetails = () => {
   const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
   return (
-    <div style={{ paddingTop: '120px', paddingBottom: '60px', minHeight: '80vh' }}>
-      <div className="nav-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '50px' }}>
+    <div className="pd-page-wrapper">
+      <div className="pd-breadcrumb">
+        <Link to="/">Home</Link>
+        <span>&gt;</span>
+        <Link to={getCategoryLink(product.category)}>{product.category || 'Products'}</Link>
+        <span>&gt;</span>
+        <span style={{ color: 'var(--color-gray-400)' }}>{product.title}</span>
+      </div>
+      <div className="pd-layout">
         
         {/* Left: Images */}
-        <div style={{ flex: '1 1 500px', display: 'flex', gap: '20px' }}>
-          {/* Thumbnails */}
-          {allImages.length > 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '80px' }}>
+        <div className="pd-image-section">
+          {/* Main Image / Mobile Slider */}
+          <div className="pd-main-image-container">
+            <img src={mainImage} alt={product.title} className="pd-main-image desktop-only" />
+            <div className="pd-mobile-slider mobile-only">
               {allImages.map((img, index) => (
-                <img 
-                  key={index} 
-                  src={img} 
-                  alt={`Thumbnail ${index}`} 
-                  style={{ 
-                    width: '80px', 
-                    height: '100px', 
-                    objectFit: 'cover', 
-                    cursor: 'pointer',
-                    border: mainImage === img ? '2px solid var(--color-primary)' : '1px solid var(--color-gray-200)',
-                    borderRadius: '4px'
-                  }}
-                  onClick={() => setMainImage(img)}
-                />
+                <div className="pd-slide" key={index}>
+                  <img src={img} alt={`${product.title} ${index}`} className="pd-slide-img" />
+                </div>
               ))}
             </div>
-          )}
-          
-          {/* Main Image */}
-          <div style={{ flex: 1, backgroundColor: 'var(--color-gray-100)', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <img src={mainImage} alt={product.title} style={{ width: '100%', height: 'auto', maxHeight: '700px', objectFit: 'contain' }} />
             {user && (
               <button 
                 onClick={() => toggleWishlist(product)}
@@ -129,49 +132,59 @@ const ProductDetails = () => {
               </button>
             )}
           </div>
+          
+          {/* Desktop Thumbnails */}
+          {allImages.length > 1 && (
+            <div className="pd-thumbnails desktop-only">
+              {allImages.map((img, index) => (
+                <img 
+                  key={index} 
+                  src={img} 
+                  alt={`Thumbnail ${index}`} 
+                  className="pd-thumbnail-img"
+                  style={{ 
+                    border: mainImage === img ? '2px solid var(--color-primary)' : '1px solid var(--color-gray-200)',
+                  }}
+                  onClick={() => setMainImage(img)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Details */}
-        <div style={{ flex: '1 1 400px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', marginBottom: '8px' }}>{product.title}</h1>
-            <p style={{ color: 'var(--color-gray-500)', fontSize: '18px' }}>{product.category}</p>
+        <div className="pd-details-section">
+          <div className="pd-title-block">
+            <p className="pd-category-subtitle">{product.category}</p>
+            <h1 className="pd-title">{product.title}</h1>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <span style={{ fontSize: '28px', fontWeight: 'bold', color: product.isSale ? '#ef4444' : 'var(--color-black)' }}>
+          <div className="pd-price-block">
+            <span className="pd-price" style={{ color: product.isSale ? '#ef4444' : 'var(--color-black)' }}>
               {product.price}
             </span>
             {product.isSale && product.originalPrice && (
-              <span style={{ fontSize: '18px', textDecoration: 'line-through', color: 'var(--color-gray-400)' }}>
+              <span className="pd-original-price">
                 {product.originalPrice}
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#10b981', fontWeight: 'bold' }}>
+          <div className="pd-stock-status">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             {product.stock ? `${product.stock} In Stock` : 'In Stock'}
           </div>
 
           {/* Sizes */}
           {product.sizes && product.sizes.length > 0 && (
-            <div>
-              <h3 style={{ marginBottom: '10px', fontSize: '16px' }}>Size</h3>
-              <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="pd-size-block">
+              <h3 className="pd-size-title">Size</h3>
+              <div className="pd-size-grid">
                 {product.sizes.map(size => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    style={{
-                      padding: '10px 20px',
-                      border: selectedSize === size ? '2px solid var(--color-primary)' : '1px solid var(--color-gray-300)',
-                      backgroundColor: selectedSize === size ? 'var(--color-primary)' : 'white',
-                      color: selectedSize === size ? 'white' : 'var(--color-black)',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
+                    className={`pd-size-btn ${selectedSize === size ? 'active' : ''}`}
                   >
                     {size}
                   </button>
@@ -181,19 +194,16 @@ const ProductDetails = () => {
           )}
 
           {/* Quantity & Add to Cart */}
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginTop: '10px' }}>
-            <div style={{ display: 'flex', border: '1px solid var(--color-gray-300)', borderRadius: '4px', overflow: 'hidden', height: '50px' }}>
-              <button onClick={decrementQuantity} style={{ padding: '0 15px', background: 'white', border: 'none', cursor: 'pointer', fontSize: '18px' }}>-</button>
-              <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', fontWeight: 'bold', borderLeft: '1px solid var(--color-gray-300)', borderRight: '1px solid var(--color-gray-300)' }}>
-                {quantity}
-              </div>
-              <button onClick={incrementQuantity} style={{ padding: '0 15px', background: 'white', border: 'none', cursor: 'pointer', fontSize: '18px' }}>+</button>
+          <div className="pd-actions-block">
+            <div className="pd-quantity-selector">
+              <button onClick={decrementQuantity}>-</button>
+              <div className="pd-quantity-val">{quantity}</div>
+              <button onClick={incrementQuantity}>+</button>
             </div>
             
             <button 
               onClick={handleAddToCart}
-              className="btn-primary"
-              style={{ flex: 1, height: '50px', fontSize: '16px' }}
+              className="btn-primary pd-add-btn"
             >
               {addedToCart ? "Added to Cart ✓" : "Add to Cart"}
             </button>
@@ -201,18 +211,7 @@ const ProductDetails = () => {
 
           <button 
             onClick={handleBuyNow}
-            style={{ 
-              width: '100%', 
-              height: '50px', 
-              backgroundColor: 'var(--color-black)', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              textTransform: 'uppercase'
-            }}
+            className="pd-buy-btn"
           >
             Buy it now
           </button>

@@ -32,7 +32,9 @@ export const AuthProvider = ({ children }) => {
               name: userData.name,
               role: userData.role,
               points: userData.points || 0,
-              isLoyaltyMember: userData.isLoyaltyMember || false
+              isLoyaltyMember: userData.isLoyaltyMember || false,
+              phone: userData.phone || '',
+              birthday: userData.birthday || ''
             });
           } else {
             // Fallback if no doc exists
@@ -72,7 +74,9 @@ export const AuthProvider = ({ children }) => {
           name: userData.name,
           role: userData.role,
           points: userData.points || 0,
-          isLoyaltyMember: userData.isLoyaltyMember || false
+          isLoyaltyMember: userData.isLoyaltyMember || false,
+          phone: userData.phone || '',
+          birthday: userData.birthday || ''
         });
       }
       return true;
@@ -205,6 +209,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserProfile = async (uid, data) => {
+    try {
+      const userRef = doc(db, 'users', uid);
+      await updateDoc(userRef, data);
+      setUser(prev => ({ ...prev, ...data }));
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return false;
+    }
+  };
+
   const value = {
     user,
     login,
@@ -215,6 +231,7 @@ export const AuthProvider = ({ children }) => {
     updateUserPoints,
     joinLoyaltyProgram,
     addRewardHistory,
+    updateUserProfile,
     loading
   };
 

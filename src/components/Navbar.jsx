@@ -44,6 +44,17 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
     }
   };
 
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   // Determine styles based on route. Home page has full nav, other pages have nike-navbar style
   const isUtilityVisible = isHome;
   const navbarClass = isHome ? `navbar ${isScrolled ? 'scrolled' : ''}` : 'navbar nike-navbar';
@@ -86,14 +97,50 @@ const Navbar = ({ isHome, openSignIn, openJoinUs }) => {
         </div>
         
         <div className={isHome ? 'nav-center' : 'nike-nav-center'}>
+          {isMobileMenuOpen && (
+            <div className="mobile-menu-overlay active" onClick={toggleMobileMenu}></div>
+          )}
           <ul className={`nav-links ${!isHome ? 'nike-nav-links' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
-            <button className="mobile-close-btn" onClick={toggleMobileMenu}>&times;</button>
-            <li><Link to="/new-releases.html" className={location.pathname === '/new-releases.html' ? 'active' : ''}>New Releases</Link></li>
-            <li><Link to="/men.html" className={location.pathname === '/men.html' ? 'active' : ''}>Men</Link></li>
-            <li><Link to="/women.html" className={location.pathname === '/women.html' ? 'active' : ''}>Women</Link></li>
-            <li><Link to="/kids.html" className={location.pathname === '/kids.html' ? 'active' : ''}>Kids</Link></li>
-            <li><Link to="/accessories.html" className={location.pathname === '/accessories.html' ? 'active' : ''}>Accessories</Link></li>
-            <li><Link to="/sale.html" className={location.pathname === '/sale.html' ? 'active' : ''}>Sale</Link></li>
+            <div className="mobile-menu-header">
+              <span className="mobile-menu-title">Menu</span>
+              <button className="mobile-close-btn" onClick={toggleMobileMenu}>&times;</button>
+            </div>
+            <li>
+              <Link to="/new-releases.html" className={location.pathname === '/new-releases.html' ? 'active' : ''}>
+                <img src="/images/women_fashion_editorial_1782340418253.png" alt="New Releases" className="nav-mobile-img" />
+                <span className="nav-text">New Releases</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/men.html" className={location.pathname === '/men.html' ? 'active' : ''}>
+                <img src="/images/men_category_new_1782340195741.png" alt="Men" className="nav-mobile-img" />
+                <span className="nav-text">Men</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/women.html" className={location.pathname === '/women.html' ? 'active' : ''}>
+                <img src="/images/women_category_new_1782340205931.png" alt="Women" className="nav-mobile-img" />
+                <span className="nav-text">Women</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/kids.html" className={location.pathname === '/kids.html' ? 'active' : ''}>
+                <img src="/images/kids_category_new_1782340216152.png" alt="Kids" className="nav-mobile-img" />
+                <span className="nav-text">Kids</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/accessories.html" className={location.pathname === '/accessories.html' ? 'active' : ''}>
+                <img src="/images/accessory_sunglasses.png" alt="Accessories" className="nav-mobile-img" />
+                <span className="nav-text">Accessories</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/sale.html" className={location.pathname === '/sale.html' ? 'active' : ''}>
+                <img src="/images/product_3_1779816815338.png" alt="Sale" className="nav-mobile-img" />
+                <span className="nav-text">Sale</span>
+              </Link>
+            </li>
           </ul>
         </div>
 

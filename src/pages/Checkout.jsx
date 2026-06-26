@@ -37,6 +37,18 @@ const Checkout = () => {
     }
   }, [formData]);
 
+  // Lock body scroll when leave modal is open
+  useEffect(() => {
+    if (showLeaveModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showLeaveModal]);
+
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = shippingOption === 'standard' ? 500 : 1000;
   
@@ -241,44 +253,129 @@ const Checkout = () => {
             </div>
           )}
 
-          <div className="payment-methods-group">
-            <div 
-              className={`payment-method-box ${paymentMethod === 'card' ? 'active' : ''}`}
-              onClick={() => setPaymentMethod('card')}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              <span>Credit or Debit Card</span>
-            </div>
+          <div className="checkout-payment-accordion">
+            {/* Payzy */}
+            <label className={`payment-accordion-item ${paymentMethod === 'card' ? 'active' : ''}`}>
+              <div className="payment-accordion-header">
+                <div className="payment-radio-left">
+                  <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
+                  <span>Credit or Debit Card</span>
+                </div>
+                <div className="payment-icons">
+                  <span className="payment-icon-badge">
+                    <svg viewBox="0 0 38 24" width="38" height="24" fill="none" style={{ color: '#1a1f71' }}><path d="M13.5 17.5h3.2l2-11.5h-3.2l-2 11.5zM26.2 6.2c-.6-.2-1.6-.4-2.8-.4-3.1 0-5.3 1.6-5.3 4 0 1.7 1.5 2.7 2.7 3.3 1.2.6 1.6 1 1.6 1.5 0 .8-1 1.2-1.9 1.2-1.3 0-2-.2-2.9-.6l-.4-.2-.4 2.7c.7.3 2 .6 3.4.6 3.3 0 5.5-1.6 5.5-4.1 0-1.4-1-2.4-2.6-3.1-1.1-.5-1.8-.9-1.8-1.4 0-.4.5-1 1.8-1 .9 0 1.7.2 2.3.5l.3.1.5-2.6zM29.5 17.5h3l-2.6-11.5h-2.5c-.5 0-.9.2-1.1.7L22 17.5h3.4l.7-1.8h4.1l.3 1.8z" fill="currentColor"/><path d="M26.5 13.9l1.7-4.6h-.1l-.9 4.6h-.7z" fill="#f7b600"/><path d="M12.6 6h-3.1L6.7 14l-.3-1.6C6.1 11.2 4.4 9 2.5 8l1.4 9.5h3.3l4.4-11.5z" fill="currentColor"/></svg>
+                  </span>
+                  <span className="payment-icon-badge">
+                    <svg viewBox="0 0 38 24" width="38" height="24" fill="none"><circle cx="12" cy="12" r="8" fill="#eb001b"/><circle cx="26" cy="12" r="8" fill="#f79e1b"/><path d="M19 19.5c-2.8 0-5.2-1.5-6.5-3.8.8-2.3 3.1-4 5.9-4s5.1 1.7 5.9 4c-1.3 2.3-3.7 3.8-6.5 3.8z" fill="#ff5f00"/></svg>
+                  </span>
+                </div>
+              </div>
+              {paymentMethod === 'card' && (
+                <div className="payment-accordion-body">
+                  You'll be redirected to a secure gateway to complete your purchase.
+                </div>
+              )}
+            </label>
+
+            {/* Koko */}
+            <label className={`payment-accordion-item ${paymentMethod === 'koko' ? 'active' : ''}`}>
+              <div className="payment-accordion-header">
+                <div className="payment-radio-left">
+                  <input type="radio" name="payment" checked={paymentMethod === 'koko'} onChange={() => setPaymentMethod('koko')} />
+                  <span>Koko: Buy Now Pay Later</span>
+                </div>
+                <div className="payment-icons">
+                  <span className="payment-icon-badge"><span style={{ fontWeight: 800, color: '#f36', fontSize: '0.8rem' }}>Koko</span></span>
+                </div>
+              </div>
+              {paymentMethod === 'koko' && (
+                <div className="payment-accordion-body">
+                  You'll be redirected to Koko to complete your purchase in 3 installments.
+                </div>
+              )}
+            </label>
+
+            {/* Mintpay */}
+            <label className={`payment-accordion-item ${paymentMethod === 'mintpay' ? 'active' : ''}`}>
+              <div className="payment-accordion-header">
+                <div className="payment-radio-left">
+                  <input type="radio" name="payment" checked={paymentMethod === 'mintpay'} onChange={() => setPaymentMethod('mintpay')} />
+                  <span>Mintpay | Shop now. Pay later.</span>
+                </div>
+                <div className="payment-icons">
+                  <span className="payment-icon-badge"><span style={{ fontWeight: 800, color: '#00C896', fontSize: '0.8rem' }}>mintpay</span></span>
+                </div>
+              </div>
+              {paymentMethod === 'mintpay' && (
+                <div className="payment-accordion-body">
+                  You'll be redirected to Mintpay to complete your purchase.
+                </div>
+              )}
+            </label>
+
+            {/* Bank Transfer */}
+            <label className={`payment-accordion-item ${paymentMethod === 'bank' ? 'active' : ''}`}>
+              <div className="payment-accordion-header">
+                <div className="payment-radio-left">
+                  <input type="radio" name="payment" checked={paymentMethod === 'bank'} onChange={() => setPaymentMethod('bank')} />
+                  <span>Bank Transfer</span>
+                </div>
+              </div>
+              {paymentMethod === 'bank' && (
+                <div className="payment-accordion-body">
+                  Our bank details will be shown on the next step.
+                </div>
+              )}
+            </label>
             
-            <div 
-              className={`payment-method-box ${paymentMethod === 'koko' ? 'active' : ''}`}
-              onClick={() => setPaymentMethod('koko')}
-            >
-              <span style={{ fontWeight: 800, color: '#f36', fontSize: '1.2rem', padding: '0 5px' }}>Koko</span>
-            </div>
+            {/* Cash on Delivery */}
+            <label className={`payment-accordion-item ${paymentMethod === 'cod' ? 'active' : ''}`}>
+              <div className="payment-accordion-header">
+                <div className="payment-radio-left">
+                  <input type="radio" name="payment" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
+                  <span>Cash on Delivery (COD)</span>
+                </div>
+              </div>
+              {paymentMethod === 'cod' && (
+                <div className="payment-accordion-body">
+                  Pay with cash upon delivery.
+                </div>
+              )}
+            </label>
+          </div>
+        </div>
 
-            <div 
-              className={`payment-method-box ${paymentMethod === 'mintpay' ? 'active' : ''}`}
-              onClick={() => setPaymentMethod('mintpay')}
-            >
-              <span style={{ fontWeight: 800, color: '#00C896', fontSize: '1.2rem', padding: '0 5px' }}>mintpay</span>
+        {/* Item Summary (Actual Cart Items) */}
+        <div className="checkout-items-summary">
+          {cartItems.map((item, index) => (
+            <div className="checkout-item-row" key={`${item.id}-${index}`}>
+              <div style={{ position: 'relative' }}>
+                <img src={item.image || '/images/default.jpg'} alt={item.name} className="checkout-item-img" />
+                <span style={{
+                  position: 'absolute', top: '-8px', right: '-8px', background: 'rgba(114,114,114,0.9)', 
+                  color: '#fff', fontSize: '12px', width: '20px', height: '20px', borderRadius: '50%', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  {item.quantity}
+                </span>
+              </div>
+              <div className="checkout-item-details">
+                <div className="checkout-item-title">{item.name}</div>
+                <div className="checkout-item-qty">{item.color} / {item.size}</div>
+              </div>
+              <div className="checkout-item-price">
+                {formatPrice(item.price * item.quantity)}
+              </div>
             </div>
-
-            <div 
-              className={`payment-method-box ${paymentMethod === 'bank' ? 'active' : ''}`}
-              onClick={() => setPaymentMethod('bank')}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="5 6 12 3 19 6"/><line x1="4" y1="10" x2="4" y2="21"/><line x1="20" y1="10" x2="20" y2="21"/><line x1="8" y1="14" x2="8" y2="17"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="16" y1="14" x2="16" y2="17"/></svg>
-              <span>Bank Transfer</span>
+          ))}
+          
+          <div style={{ borderTop: '1px solid var(--color-gray-200)', marginTop: '1rem', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.2rem', fontWeight: 600 }}>Total</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--color-gray-500)' }}>LKR</span>
+              <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>{formatPrice(total).replace('LKR', '').trim()}</span>
             </div>
           </div>
-
-          <div style={{ marginTop: '2rem', fontSize: '0.9rem' }}>Enter your payment details:</div>
-          {paymentMethod === 'card' && (
-            <div style={{ padding: '1rem', border: '1px solid var(--color-gray-200)', borderRadius: '8px', marginTop: '1rem', background: '#f9f9f9' }}>
-               <p style={{ color: 'var(--color-gray-400)', textAlign: 'center' }}>[ Payment Gateway loads here ]</p>
-            </div>
-          )}
         </div>
 
         {/* Place Order */}

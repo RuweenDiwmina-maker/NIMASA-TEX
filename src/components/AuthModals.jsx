@@ -38,15 +38,25 @@ const AuthModals = ({ isSignInOpen, isJoinUsOpen, closeModals, openSignIn, openJ
     if (!isSignInOpen && !isJoinUsOpen) {
       setSignInEmail('');
       setSignInPassword('');
-      setSignInError('');
       setJoinName('');
       setJoinEmail('');
       setJoinPassword('');
+      setSignInError('');
       setJoinError('');
       setShowSignInPassword(false);
       setShowJoinPassword(false);
+      document.body.style.overflow = 'unset';
+    } else {
+      // Prevent background scrolling when modal is open
+      document.body.style.overflow = 'hidden';
     }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isSignInOpen, isJoinUsOpen]);
+
 
   const handleSignIn = async (e) => {
     e.preventDefault();

@@ -28,9 +28,8 @@ const Footer = () => {
         <div className="footer-col">
           <h4>Help</h4>
           <ul>
-            <li><Link to="#">Order Status</Link></li>
             <li><Link to="/shipping.html">Shipping & Delivery</Link></li>
-            <li><Link to="#">Returns</Link></li>
+            <li><Link to="/returns.html">Returns</Link></li>
             <li><Link to="/help">Contact Us</Link></li>
           </ul>
         </div>
