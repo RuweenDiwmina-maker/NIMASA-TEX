@@ -54,10 +54,10 @@ const UserProfile = () => {
               fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-primary)',
               boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
             }}>
-              {user.name.charAt(0).toUpperCase()}
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div style={{ paddingBottom: '50px', color: '#fff' }}>
-              <h1 style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.5px' }}>{user.name}</h1>
+              <h1 style={{ margin: 0, fontSize: '2rem', letterSpacing: '-0.5px' }}>{user.name || 'User'}</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
                 <span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{user.email}</span>
                 <span style={{ 
@@ -204,7 +204,7 @@ const UserProfile = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
                     <div>
                       <span style={{ display: 'block', color: '#64748b', fontSize: '0.85rem', fontWeight: '500', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</span>
-                      <span style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: '500' }}>{user.name}</span>
+                      <span style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: '500' }}>{user.name || 'User'}</span>
                     </div>
                     <div>
                       <span style={{ display: 'block', color: '#64748b', fontSize: '0.85rem', fontWeight: '500', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address</span>

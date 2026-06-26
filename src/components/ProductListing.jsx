@@ -72,6 +72,12 @@ const ProductListing = ({ products, title }) => {
              <button className={viewMode === 4 ? 'active' : ''} onClick={() => setViewMode(4)}>
                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M2 4h4v16H2V4zm5 0h4v16H7V4zm5 0h4v16h-4V4zm5 0h5v16h-5V4z"/></svg>
              </button>
+             <button className={viewMode === 5 ? 'active' : ''} onClick={() => setViewMode(5)}>
+               <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M2 4h3v16H2V4zm4 0h3v16H6V4zm4 0h3v16h-3V4zm4 0h3v16h-3V4zm4 0h3v16h-3V4z"/></svg>
+             </button>
+             <button className={viewMode === 6 ? 'active' : ''} onClick={() => setViewMode(6)}>
+               <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M1 4h2.5v16H1V4zm4 0h2.5v16H5V4zm4 0h2.5v16H9V4zm4 0h2.5v16H13V4zm4 0h2.5v16H17V4zm4 0h2.5v16H21V4z"/></svg>
+             </button>
           </div>
         </div>
         

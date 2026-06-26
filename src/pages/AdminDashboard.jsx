@@ -4,7 +4,7 @@ import { useProduct } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
 import { useHero } from '../context/HeroContext';
 import { storage, db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 // --- SVG Icons ---
@@ -74,6 +74,12 @@ const ClockIcon = () => (
   </svg>
 );
 
+const GiftIcon = () => (
+  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+  </svg>
+);
+
 // --- Helper Functions ---
 const parsePrice = (priceStr) => {
   if (!priceStr) return 0;
@@ -106,7 +112,7 @@ const AdminDashboard = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
-    if (activeTab === 'users' && dbUsers.length === 0) {
+    if ((activeTab === 'users' || activeTab === 'rewards') && dbUsers.length === 0) {
       const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
@@ -134,6 +140,29 @@ const AdminDashboard = () => {
   });
   const [isUploading, setIsUploading] = useState(false);
   const [autoplayInterval, setAutoplayInterval] = useState(settings.autoplayInterval || 5);
+
+  // Rewards State
+  const [selectedUserForHistory, setSelectedUserForHistory] = useState(null);
+  const [userRewardHistory, setUserRewardHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchUserHistory = async (userId) => {
+    setLoadingHistory(true);
+    setSelectedUserForHistory(userId);
+    try {
+      const q = query(collection(db, 'users', userId, 'rewardHistory'), orderBy('date', 'desc'));
+      const snapshot = await getDocs(q);
+      const history = [];
+      snapshot.forEach(doc => {
+        history.push({ id: doc.id, ...doc.data() });
+      });
+      setUserRewardHistory(history);
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -415,10 +444,10 @@ const AdminDashboard = () => {
     alert("Autoplay settings saved successfully!");
   };
 
-  const handleSignOut = (e) => {
+  const handleSignOut = async (e) => {
     e.preventDefault();
-    logout();
-    navigate('/');
+    await logout();
+    window.location.href = '/';
   };
 
   return (
@@ -443,6 +472,10 @@ const AdminDashboard = () => {
           <div onClick={() => setActiveTab('users')} style={{ padding: '12px 20px', backgroundColor: activeTab === 'users' ? '#222' : 'transparent', borderLeft: activeTab === 'users' ? '4px solid #fff' : '4px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', transition: 'background-color 0.2s', marginTop: '5px' }}>
             <UsersIcon />
             <span style={{ fontWeight: '500' }}>Users</span>
+          </div>
+          <div onClick={() => setActiveTab('rewards')} style={{ padding: '12px 20px', backgroundColor: activeTab === 'rewards' ? '#222' : 'transparent', borderLeft: activeTab === 'rewards' ? '4px solid #fff' : '4px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', transition: 'background-color 0.2s', marginTop: '5px' }}>
+            <GiftIcon />
+            <span style={{ fontWeight: '500' }}>Rewards</span>
           </div>
         </nav>
 
@@ -770,6 +803,57 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Rewards Tab Content */}
+        {activeTab === 'rewards' && (
+          <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <div>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: '#111', margin: '0 0 5px 0' }}>Loyalty Rewards</h1>
+                <p style={{ color: '#666', margin: 0, fontSize: '0.95rem' }}>Manage users in the loyalty program</p>
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #eee', textAlign: 'left', color: '#555', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <th style={{ padding: '15px 25px', fontWeight: '600' }}>User</th>
+                    <th style={{ padding: '15px 25px', fontWeight: '600' }}>Email</th>
+                    <th style={{ padding: '15px 25px', fontWeight: '600' }}>Points</th>
+                    <th style={{ padding: '15px 25px', fontWeight: '600', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dbUsers.filter(u => u.isLoyaltyMember).map(user => (
+                    <tr key={user.id} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <td style={{ padding: '15px 25px', fontWeight: '500', color: '#111' }}>{user.name}</td>
+                      <td style={{ padding: '15px 25px', color: '#555' }}>{user.email}</td>
+                      <td style={{ padding: '15px 25px', color: '#111', fontWeight: '600' }}>{user.points || 0}</td>
+                      <td style={{ padding: '15px 25px', textAlign: 'right' }}>
+                        <button 
+                          onClick={() => fetchUserHistory(user.id)} 
+                          style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: '#fff', color: '#0f172a', cursor: 'pointer', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '500', transition: 'all 0.2s' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; }} 
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                        >
+                          View History
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {dbUsers.filter(u => u.isLoyaltyMember).length === 0 && (
+                    <tr>
+                      <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+                        No loyalty program members found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Modal for Products */}
         {isModalOpen && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
@@ -920,7 +1004,7 @@ const AdminDashboard = () => {
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '0.9rem', color: '#444' }}>Target Pages</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', padding: '15px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                      {['Home', 'Men', 'Women', 'Kids', 'New Releases', 'Sale'].map(page => (
+                      {['Home', 'Men', 'Women', 'Kids', 'New Releases', 'Sale', 'Accessories'].map(page => (
                         <label key={page} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
                           <input 
                             type="checkbox" 
@@ -954,6 +1038,47 @@ const AdminDashboard = () => {
                     <button type="submit" style={{ padding: '12px 25px', border: 'none', background: '#111', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Save Advertisement</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for Reward History */}
+        {selectedUserForHistory && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+            <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '500px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', overflow: 'hidden', animation: 'fadeIn 0.3s ease-out' }}>
+              <div style={{ padding: '20px 25px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb' }}>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '600', color: '#111' }}>
+                  Reward History
+                </h2>
+                <button onClick={() => setSelectedUserForHistory(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', color: '#888', cursor: 'pointer' }}>&times;</button>
+              </div>
+              
+              <div style={{ padding: '25px', maxHeight: '60vh', overflowY: 'auto' }}>
+                {loadingHistory ? (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Loading history...</div>
+                ) : userRewardHistory.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {userRewardHistory.map(item => (
+                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '4px' }}>{item.reason}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#64748b' }}>{item.date ? new Date(item.date.toDate()).toLocaleDateString() : 'Just now'}</div>
+                        </div>
+                        <div style={{ fontWeight: '700', fontSize: '1.1rem', color: item.amount > 0 ? '#10b981' : '#ef4444' }}>
+                          {item.amount > 0 ? `+${item.amount}` : item.amount}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', color: '#888' }}>
+                    <p style={{ margin: 0 }}>No history found for this user.</p>
+                  </div>
+                )}
+              </div>
+              <div style={{ padding: '15px 25px', borderTop: '1px solid #eee', backgroundColor: '#f9fafb', display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => setSelectedUserForHistory(null)} style={{ padding: '10px 20px', border: '1px solid #ddd', background: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Close</button>
               </div>
             </div>
           </div>

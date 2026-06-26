@@ -6,6 +6,7 @@ import HeroCarousel from '../components/HeroCarousel';
 
 const Home = () => {
   const { products } = useProduct();
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <>
@@ -18,7 +19,7 @@ const Home = () => {
             <Link to="/new-releases.html" className="view-all-link">View All</Link>
           </div>
           <div className="product-grid">
-            {products.slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
+            {products.filter(p => p.isNewRelease && p.newReleaseExpiry >= today).slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>
@@ -39,22 +40,32 @@ const Home = () => {
         <div className="container">
           <h2 className="section-title">Shop by Category</h2>
           <div className="category-grid">
-            <Link to="/men.html" className="category-card">
-              <img src="/images/men_nocoat_1782340559911.png" alt="Men's Fashion" />
+            <Link to="/women.html" className="category-card">
+              <img src="/images/women_hero_.png" alt="Women's Fashion" />
               <div className="category-overlay">
-                <h3>Men</h3>
+                <button className="shop-now-btn">SHOP NOW</button>
+                <h3>WOMENS</h3>
               </div>
             </Link>
-            <Link to="/women.html" className="category-card">
-              <img src="/images/women_nocoat_1782340568704.png" alt="Women's Fashion" />
+            <Link to="/men.html" className="category-card">
+              <img src="/images/men_new_cover.png" alt="Men's Fashion" />
               <div className="category-overlay">
-                <h3>Women</h3>
+                <button className="shop-now-btn">SHOP NOW</button>
+                <h3>MENS</h3>
               </div>
             </Link>
             <Link to="/kids.html" className="category-card">
-              <img src="/images/kids_category_new_1782340216152.png" alt="Kids Fashion" />
+              <img src="/images/kids_hero_.png" alt="Kids Fashion" />
               <div className="category-overlay">
-                <h3>Kids</h3>
+                <button className="shop-now-btn">SHOP NOW</button>
+                <h3>KIDS</h3>
+              </div>
+            </Link>
+            <Link to="/accessories.html" className="category-card">
+              <img src="/images/accessory_sunglasses.png" alt="Accessories" />
+              <div className="category-overlay">
+                <button className="shop-now-btn">SHOP NOW</button>
+                <h3>ACCESSORIES</h3>
               </div>
             </Link>
           </div>
@@ -68,7 +79,7 @@ const Home = () => {
             <Link to="/men.html" className="view-all-link">View All</Link>
           </div>
           <div className="product-grid">
-            {products.filter(p => p.category === 'Men').slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
+            {products.filter(p => p.category.startsWith('Men')).slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>
@@ -80,7 +91,7 @@ const Home = () => {
             <Link to="/women.html" className="view-all-link">View All</Link>
           </div>
           <div className="product-grid">
-            {products.filter(p => p.category === 'Women').slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
+            {products.filter(p => p.category.startsWith('Women')).slice(0, 4).map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import './RewardsPopup.css';
 
 const RewardsPopup = ({ openSignIn, openJoinUs }) => {
@@ -9,6 +11,32 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [activeView, setActiveView] = useState('main'); // 'main', 'profile', 'redeem', 'history', 'rewards'
+  const [rewardHistory, setRewardHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  if (!user) return null;
+
+  useEffect(() => {
+    if (activeView === 'history' && user) {
+      const fetchHistory = async () => {
+        setLoadingHistory(true);
+        try {
+          const q = query(collection(db, 'users', user.uid, 'rewardHistory'), orderBy('date', 'desc'));
+          const snapshot = await getDocs(q);
+          const history = [];
+          snapshot.forEach(doc => {
+            history.push({ id: doc.id, ...doc.data() });
+          });
+          setRewardHistory(history);
+        } catch (error) {
+          console.error("Error fetching reward history:", error);
+        } finally {
+          setLoadingHistory(false);
+        }
+      };
+      fetchHistory();
+    }
+  }, [activeView, user]);
 
   const togglePopup = () => {
     if (isOpen) {
@@ -65,7 +93,7 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
             ) : user && !user.isLoyaltyMember ? (
               <div className="rewards-state-join">
                 <div className="rewards-icon-bounce">⭐</div>
-                <h4>Welcome, {user.name.split(' ')[0]}!</h4>
+                <h4>Welcome, {user.name ? user.name.split(' ')[0] : 'User'}!</h4>
                 <p>You're just one step away from earning points. Join our rewards program today for free!</p>
                 <button 
                   className={`btn-rewards-primary ${isJoining ? 'loading' : ''}`} 
@@ -78,18 +106,18 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
             ) : activeView === 'profile' ? (
               <div className="sub-view profile-view">
                 <div className="profile-header">
-                   <div className="profile-avatar">{user.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}</div>
-                   <h4>{user.name}</h4>
+                   <div className="profile-avatar">{user.name ? user.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : 'U'}</div>
+                   <h4>{user.name || 'User'}</h4>
                    <p>{user.email}</p>
                 </div>
                 <form className="profile-form" onSubmit={(e) => e.preventDefault()}>
                   <div className="form-group">
                     <label>First Name</label>
-                    <input type="text" defaultValue={user.name.split(' ')[0]} />
+                    <input type="text" defaultValue={user.name ? user.name.split(' ')[0] : ''} />
                   </div>
                   <div className="form-group">
                     <label>Last Name</label>
-                    <input type="text" defaultValue={user.name.split(' ').slice(1).join(' ')} />
+                    <input type="text" defaultValue={user.name ? user.name.split(' ').slice(1).join(' ') : ''} />
                   </div>
                   <div className="form-group">
                     <label>Phone</label>
@@ -126,13 +154,25 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
                     <p>TRACK YOUR EARNING AND SPENDING HISTORY.</p>
                   </div>
                 </div>
-                <div className="history-card">
-                   <div className="history-info">
-                     <strong>Registration Points</strong>
-                     <span>6/23/2026</span>
-                   </div>
-                   <span className="points-plus">+100</span>
-                </div>
+                {loadingHistory ? (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Loading history...</div>
+                ) : rewardHistory.length > 0 ? (
+                  rewardHistory.map(item => (
+                    <div className="history-card" key={item.id}>
+                       <div className="history-info">
+                         <strong>{item.reason}</strong>
+                         <span>{item.date ? new Date(item.date.toDate()).toLocaleDateString() : 'Just now'}</span>
+                       </div>
+                       <span className={item.amount > 0 ? 'points-plus' : 'points-minus'}>
+                         {item.amount > 0 ? `+${item.amount}` : item.amount}
+                       </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="empty-state">
+                     <p>No history available yet.</p>
+                  </div>
+                )}
               </div>
             ) : activeView === 'rewards' ? (
               <div className="sub-view rewards-view">

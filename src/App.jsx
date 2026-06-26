@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AuthModals from './components/AuthModals';
-import RewardsPopup from './components/RewardsPopup';
+import RewardsPopup from './components/SafeRewardsPopup';
 import Home from './pages/Home';
 import Men from './pages/Men';
 import Women from './pages/Women';

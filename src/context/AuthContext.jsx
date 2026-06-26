@@ -10,7 +10,7 @@ import {
   signInWithPopup,
   sendEmailVerification
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -60,7 +60,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Fetch role immediately to prevent race conditions during navigation
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUser({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          name: userData.name,
+          role: userData.role,
+          points: userData.points || 0,
+          isLoyaltyMember: userData.isLoyaltyMember || false
+        });
+      }
       return true;
     } catch (error) {
       console.error("Login error:", error);
@@ -141,6 +155,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const addRewardHistory = async (uid, amount, reason) => {
+    try {
+      const historyRef = collection(db, 'users', uid, 'rewardHistory');
+      await addDoc(historyRef, {
+        amount,
+        reason,
+        date: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error adding reward history:", error);
+    }
+  };
+
   const updateUserPoints = async (uid, newPoints) => {
     try {
       const userRef = doc(db, 'users', uid);
@@ -155,9 +182,22 @@ export const AuthProvider = ({ children }) => {
   const joinLoyaltyProgram = async (uid) => {
     try {
       const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, { isLoyaltyMember: true });
+      
+      // Get current points
+      const userDoc = await getDoc(userRef);
+      const currentPoints = userDoc.data().points || 0;
+      const newPoints = currentPoints + 100;
+
+      await updateDoc(userRef, { 
+        isLoyaltyMember: true,
+        points: newPoints
+      });
+      
+      // Add to history
+      await addRewardHistory(uid, 100, 'Registration Bonus');
+
       // Update local state
-      setUser(prev => ({ ...prev, isLoyaltyMember: true }));
+      setUser(prev => ({ ...prev, isLoyaltyMember: true, points: newPoints }));
       return true;
     } catch (error) {
       console.error("Error joining loyalty program:", error);
@@ -174,12 +214,18 @@ export const AuthProvider = ({ children }) => {
     signInWithGoogle,
     updateUserPoints,
     joinLoyaltyProgram,
+    addRewardHistory,
     loading
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f4f6f8' }}>
+          <div style={{ width: '40px', height: '40px', border: '4px solid #e2e8f0', borderTop: '4px solid #e53e3e', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };

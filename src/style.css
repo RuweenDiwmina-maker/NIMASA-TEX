@@ -2242,31 +2242,99 @@ ul {
     position: fixed;
     top: 0;
     right: -100%;
-    width: 250px;
+    width: 320px;
+    max-width: 85vw;
     height: 100vh;
-    background-color: var(--color-white);
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
     flex-direction: column;
-    align-items: flex-start;
-    padding: 80px 30px 30px;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-    transition: right 0.3s ease;
-    z-index: 1000;
+    align-items: stretch;
+    padding: 0;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+    transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 2000;
   }
   .nav-links.mobile-open {
     right: 0 !important;
   }
-  .nav-links li {
-    margin: 15px 0;
+  
+  .mobile-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 25px 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    margin-bottom: 10px;
+  }
+  .mobile-menu-brand {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
   }
   .mobile-close-btn {
-    display: block !important;
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    display: flex !important;
+    position: static;
     background: none;
     border: none;
-    font-size: 2rem;
     cursor: pointer;
+    padding: 5px;
+    color: var(--color-black);
+    transition: transform 0.3s;
+  }
+  .mobile-close-btn:hover {
+    transform: rotate(90deg);
+  }
+
+  .nav-links li {
+    margin: 0;
+    padding: 0 25px;
+  }
+  .nav-links li a {
+    display: block;
+    padding: 18px 0;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-gray-800);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s;
+  }
+  .nav-links li:last-of-type a {
+    border-bottom: none;
+  }
+  .nav-links li a:active, .nav-links li a.active {
+    color: var(--color-primary);
+    padding-left: 10px;
+  }
+  
+  .mobile-menu-footer {
+    margin-top: auto;
+    padding: 25px;
+    background-color: #f9f9f9;
+    border-top: 1px solid rgba(0,0,0,0.08);
+  }
+  .mobile-auth-links {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+  .mobile-auth-links a {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-gray-800);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .mobile-auth-links a:hover {
+    background: var(--color-black);
+    color: white;
+    border-color: var(--color-black);
   }
   .hero-title {
     font-size: clamp(2rem, 6vw, 4rem) !important;
@@ -2395,4 +2463,50 @@ ul {
 .view-all-link:hover {
   text-decoration: underline;
   opacity: 0.8;
+}
+
+/* Mobile Whitespace & Layout Fixes (Restored) */
+@media (max-width: 768px) {
+  .section { padding: 1rem 0; }
+  .hero { min-height: auto !important; height: auto !important; padding: 0 !important; }
+  .section-title { margin-bottom: 1rem; }
+  
+  .container { padding: 0 10px; }
+  .categories .container { padding: 0; }
+  .categories .section-title { padding: 0 15px; margin-bottom: 1rem; font-size: 1.8rem !important; }
+  
+  .product-grid { gap: 8px; }
+  .category-grid { gap: 4px; }
+  .category-card { aspect-ratio: 1/1; border-radius: 0; }
+  .nike-product-grid { gap: 8px; }
+  .footer { padding: 2rem 15px; }
+
+  /* Mobile Product Card Fixes */
+  .hover-actions-top-right {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+  }
+  .product-actions {
+    bottom: 0 !important;
+    padding: 0.5rem !important;
+  }
+  .btn-add-cart {
+    padding: 0.5rem !important;
+    font-size: 0.85rem !important;
+  }
+  .product-info {
+    padding: 0.75rem 0.5rem !important;
+  }
+  .product-title {
+    font-size: 0.95rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .product-price {
+    font-size: 1rem !important;
+  }
+  .quick-view-text {
+    display: none !important;
+  }
 }

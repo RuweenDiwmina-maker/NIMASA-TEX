@@ -115,11 +115,13 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
               >
                 {added ? "ADDED ✓" : "ADD TO CART"}
               </button>
-              <button style={{ padding: '0 15px', background: '#fff', border: '1px solid #e2e8f0', cursor: 'pointer' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </button>
+              {user && (
+                <button style={{ padding: '0 15px', background: '#fff', border: '1px solid #e2e8f0', cursor: 'pointer' }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+              )}
             </div>
             
             {user && (

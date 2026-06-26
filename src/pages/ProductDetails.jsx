@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -10,6 +11,7 @@ const ProductDetails = () => {
   const { products } = useProduct();
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [mainImage, setMainImage] = useState('');
@@ -103,27 +105,29 @@ const ProductDetails = () => {
           {/* Main Image */}
           <div style={{ flex: 1, backgroundColor: 'var(--color-gray-100)', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <img src={mainImage} alt={product.title} style={{ width: '100%', height: 'auto', maxHeight: '700px', objectFit: 'contain' }} />
-            <button 
-              onClick={() => toggleWishlist(product)}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                color: inWishlist ? 'var(--color-primary)' : 'var(--color-black)'
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" fill={inWishlist ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-            </button>
+            {user && (
+              <button 
+                onClick={() => toggleWishlist(product)}
+                style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  background: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                  color: inWishlist ? 'var(--color-primary)' : 'var(--color-black)'
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" fill={inWishlist ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </button>
+            )}
           </div>
         </div>
 
