@@ -21,13 +21,35 @@ const Checkout = () => {
   const [placedOrderId, setPlacedOrderId] = useState('');
   const [targetRoute, setTargetRoute] = useState('');
   const [usePoints, setUsePoints] = useState(false);
+
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
     lastName: '',
     address: '',
+    city: '',
     phone: ''
   });
+
+  // Auto-fill checkout form if user is logged in
+  useEffect(() => {
+    if (user) {
+      const nameParts = (user.name || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      setFormData(prev => ({
+        ...prev,
+        email: user.email || prev.email,
+        firstName: firstName || prev.firstName,
+        lastName: lastName || prev.lastName,
+        phone: user.phone || prev.phone,
+        address: user.address || prev.address,
+        city: user.city !== undefined ? user.city : prev.city
+      }));
+    }
+  }, [user]);
+
   const [billingOption, setBillingOption] = useState('same');
   const [billingData, setBillingData] = useState({
     firstName: '',

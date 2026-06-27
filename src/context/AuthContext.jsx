@@ -36,7 +36,9 @@ export const AuthProvider = ({ children }) => {
               points: userData.points || 0,
               isLoyaltyMember: userData.isLoyaltyMember || false,
               phone: userData.phone || '',
-              birthday: userData.birthday || ''
+              birthday: userData.birthday || '',
+              address: userData.address || '',
+              city: userData.city || ''
             });
           } else {
             // Fallback if no doc exists

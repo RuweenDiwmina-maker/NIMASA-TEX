@@ -4,7 +4,7 @@ import { useProduct } from '../context/ProductContext';
 import { useAuth } from '../context/AuthContext';
 import { useHero } from '../context/HeroContext';
 import { storage, db } from '../firebase';
-import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 // --- SVG Icons ---
@@ -121,6 +121,7 @@ const AdminDashboard = () => {
   const [dbOrders, setDbOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderFilter, setOrderFilter] = useState('active'); // 'active', 'completed', 'all'
 
   useEffect(() => {
     if ((activeTab === 'users' || activeTab === 'rewards') && dbUsers.length === 0) {
@@ -141,27 +142,45 @@ const AdminDashboard = () => {
       };
       fetchUsers();
     }
+  }, [activeTab, dbUsers.length]);
 
-    if (activeTab === 'orders' && dbOrders.length === 0) {
-      const fetchOrders = async () => {
-        setLoadingOrders(true);
-        try {
-          const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-          const querySnapshot = await getDocs(q);
-          const ordersList = [];
-          querySnapshot.forEach((doc) => {
-            ordersList.push({ id: doc.id, ...doc.data() });
-          });
-          setDbOrders(ordersList);
-        } catch (error) {
-          console.error("Error fetching orders:", error);
-        } finally {
-          setLoadingOrders(false);
-        }
-      };
-      fetchOrders();
+  // Real-time listener for orders
+  useEffect(() => {
+    setLoadingOrders(true);
+    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const ordersList = [];
+      snapshot.forEach((doc) => {
+        ordersList.push({ id: doc.id, ...doc.data() });
+      });
+      setDbOrders(ordersList);
+      setLoadingOrders(false);
+    }, (error) => {
+      console.error("Error fetching live orders:", error);
+      setLoadingOrders(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const [viewedOrderIds, setViewedOrderIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('adminViewedOrders')) || [];
+    } catch {
+      return [];
     }
-  }, [activeTab, dbOrders.length]);
+  });
+
+  useEffect(() => {
+    if (activeTab === 'orders' && dbOrders.length > 0) {
+      const pendingIds = dbOrders.filter(o => o.status === 'pending').map(o => o.id);
+      const newViewed = Array.from(new Set([...viewedOrderIds, ...pendingIds]));
+      if (newViewed.length !== viewedOrderIds.length) {
+        setViewedOrderIds(newViewed);
+        localStorage.setItem('adminViewedOrders', JSON.stringify(newViewed));
+      }
+    }
+  }, [activeTab, dbOrders, viewedOrderIds]);
 
   // Ad State
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -226,7 +245,7 @@ const AdminDashboard = () => {
     });
   }, [products, searchQuery]);
 
-  const newOrdersCount = dbOrders.filter(order => order.status === 'pending').length;
+  const newOrdersCount = dbOrders.filter(order => order.status === 'pending' && !viewedOrderIds.includes(order.id)).length;
 
   if (!user || user.role !== 'admin') return null;
 
@@ -257,6 +276,22 @@ const AdminDashboard = () => {
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, { status: newStatus });
+      
+      // Update local state
+      setDbOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert("Failed to update order status.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -497,6 +532,19 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f6f8', fontFamily: "'Inter', sans-serif" }}>
+      <style>
+        {`
+          @keyframes highlightNew {
+            from { background-color: transparent; }
+            to { background-color: #dcfce7; }
+          }
+          @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+          }
+        `}
+      </style>
       
       {/* Sidebar */}
       <aside style={{ width: '260px', backgroundColor: '#111', color: '#fff', display: 'flex', flexDirection: 'column' }}>
@@ -581,8 +629,80 @@ const AdminDashboard = () => {
 
         {activeTab === 'orders' && (
           <div style={{ backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
-            <div style={{ padding: '20px 25px', borderBottom: '1px solid #eee' }}>
+            <div style={{ padding: '20px 25px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0 }}>Customer Orders</h2>
+              
+              {/* Order Filters */}
+              <div style={{ display: 'flex', gap: '5px', backgroundColor: '#f1f5f9', padding: '5px', borderRadius: '8px' }}>
+                <button 
+                  onClick={() => setOrderFilter('active')}
+                  style={{ 
+                    padding: '6px 16px', 
+                    border: 'none', 
+                    borderRadius: '6px', 
+                    fontSize: '0.85rem', 
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    backgroundColor: orderFilter === 'active' ? '#fff' : 'transparent',
+                    color: orderFilter === 'active' ? '#111' : '#64748b',
+                    boxShadow: orderFilter === 'active' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Active Orders
+                </button>
+                <button 
+                  onClick={() => setOrderFilter('delivered')}
+                  style={{ 
+                    padding: '6px 16px', 
+                    border: 'none', 
+                    borderRadius: '6px', 
+                    fontSize: '0.85rem', 
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    backgroundColor: orderFilter === 'delivered' ? '#fff' : 'transparent',
+                    color: orderFilter === 'delivered' ? '#111' : '#64748b',
+                    boxShadow: orderFilter === 'delivered' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Delivered
+                </button>
+                <button 
+                  onClick={() => setOrderFilter('cancelled')}
+                  style={{ 
+                    padding: '6px 16px', 
+                    border: 'none', 
+                    borderRadius: '6px', 
+                    fontSize: '0.85rem', 
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    backgroundColor: orderFilter === 'cancelled' ? '#fff' : 'transparent',
+                    color: orderFilter === 'cancelled' ? '#111' : '#64748b',
+                    boxShadow: orderFilter === 'cancelled' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Cancelled
+                </button>
+                <button 
+                  onClick={() => setOrderFilter('all')}
+                  style={{ 
+                    padding: '6px 16px', 
+                    border: 'none', 
+                    borderRadius: '6px', 
+                    fontSize: '0.85rem', 
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    backgroundColor: orderFilter === 'all' ? '#fff' : 'transparent',
+                    color: orderFilter === 'all' ? '#111' : '#64748b',
+                    boxShadow: orderFilter === 'all' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  All
+                </button>
+              </div>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead style={{ background: '#f9fafb', borderBottom: '1px solid #eee' }}>
@@ -598,27 +718,57 @@ const AdminDashboard = () => {
               <tbody>
                 {loadingOrders ? (
                   <tr><td colSpan="6" style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>Loading orders...</td></tr>
-                ) : dbOrders.length === 0 ? (
-                  <tr><td colSpan="6" style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>No orders found.</td></tr>
+                ) : dbOrders.filter(order => {
+                    if (orderFilter === 'active') return order.status === 'pending' || order.status === 'shipped';
+                    if (orderFilter === 'completed') return order.status === 'delivered' || order.status === 'cancelled';
+                    return true;
+                  }).length === 0 ? (
+                  <tr><td colSpan="6" style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>No {orderFilter !== 'all' ? orderFilter : ''} orders found.</td></tr>
                 ) : (
-                  dbOrders.map(order => (
+                  dbOrders.filter(order => {
+                    if (orderFilter === 'active') return order.status === 'pending' || order.status === 'shipped';
+                    if (orderFilter === 'delivered') return order.status === 'delivered';
+                    if (orderFilter === 'cancelled') return order.status === 'cancelled';
+                    return true;
+                  }).map(order => (
                     <tr key={order.id} style={{ 
                       borderBottom: '1px solid #eee', 
-                      backgroundColor: order.status === 'pending' ? '#f0fdf4' : 'transparent',
-                      animation: order.status === 'pending' ? 'highlightNew 2s infinite alternate' : 'none' 
+                      backgroundColor: order.status === 'pending' && !viewedOrderIds.includes(order.id) ? '#f0fdf4' : 'transparent',
+                      animation: order.status === 'pending' && !viewedOrderIds.includes(order.id) ? 'highlightNew 2s infinite alternate' : 'none' 
                     }}>
                       <td style={{ padding: '15px 25px', fontWeight: '500' }}>
                         #{order.id.slice(-6).toUpperCase()}
-                        {order.status === 'pending' && <span style={{ marginLeft: '8px', fontSize: '0.65rem', padding: '2px 6px', background: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '700', verticalAlign: 'middle' }}>NEW</span>}
+                        {order.status === 'pending' && !viewedOrderIds.includes(order.id) && <span style={{ marginLeft: '8px', fontSize: '0.65rem', padding: '2px 6px', background: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '700', verticalAlign: 'middle' }}>NEW</span>}
                       </td>
                       <td style={{ padding: '15px 25px', color: '#555' }}>{order.createdAt ? new Date(order.createdAt.toDate()).toLocaleDateString() : 'N/A'}</td>
                       <td style={{ padding: '15px 25px', color: '#555' }}>
-                        {order.customerDetails?.firstName} {order.customerDetails?.lastName}
-                        {!order.userId && <span style={{ marginLeft: '8px', fontSize: '0.7rem', padding: '3px 6px', background: '#e2e8f0', color: '#475569', borderRadius: '4px', fontWeight: '600' }}>GUEST</span>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>{order.customerDetails?.firstName} {order.customerDetails?.lastName}</span>
+                          {!order.userId && <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: '#e2e8f0', color: '#475569', borderRadius: '4px', fontWeight: '600', letterSpacing: '0.5px' }}>GUEST</span>}
+                          {order.items && order.items.length > 1 && (
+                            <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: '#8b5cf6', color: '#fff', borderRadius: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>GROUP ORDER</span>
+                          )}
+                        </div>
                       </td>
-                      <td style={{ padding: '15px 25px', fontWeight: '600' }}>{formatPrice(order.totalAmount)}</td>
+                      <td style={{ padding: '15px 25px', fontWeight: '600' }}>
+                        {formatPrice(order.totalAmount)}
+                        {order.items && order.items.length > 0 && (
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#888', fontWeight: 'normal', marginTop: '2px' }}>
+                            {order.items.length} Item{order.items.length !== 1 && 's'}
+                          </span>
+                        )}
+                      </td>
                       <td style={{ padding: '15px 25px' }}>
-                        <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', background: order.status === 'pending' ? '#fef3c7' : '#d1fae5', color: order.status === 'pending' ? '#92400e' : '#065f46', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <span style={{ 
+                          padding: '6px 12px', 
+                          borderRadius: '20px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: '600', 
+                          background: order.status === 'pending' ? '#fef3c7' : order.status === 'cancelled' ? '#fee2e2' : order.status === 'shipped' ? '#dbeafe' : '#d1fae5', 
+                          color: order.status === 'pending' ? '#92400e' : order.status === 'cancelled' ? '#ef4444' : order.status === 'shipped' ? '#1e40af' : '#065f46', 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '0.5px' 
+                        }}>
                           {order.status || 'PENDING'}
                         </span>
                       </td>
@@ -1227,9 +1377,36 @@ const AdminDashboard = () => {
                   <p style={{ margin: '5px 0', fontSize: '0.95rem' }}><strong>Method:</strong> {selectedOrder.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Credit/Debit Card'}</p>
                   <p style={{ margin: '15px 0 5px 0', fontWeight: '700', fontSize: '1.2rem', color: '#111' }}><strong>Total:</strong> {formatPrice(selectedOrder.totalAmount)}</p>
                   <div style={{ marginTop: '20px' }}>
-                     <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', background: selectedOrder.status === 'pending' ? '#fef3c7' : '#d1fae5', color: selectedOrder.status === 'pending' ? '#92400e' : '#065f46', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Status: {selectedOrder.status || 'PENDING'}
-                     </span>
+                     <p style={{ marginBottom: '10px', fontSize: '0.9rem', fontWeight: '500', color: '#444' }}>Update Status:</p>
+                     <div style={{ display: 'flex', gap: '10px' }}>
+                        {['pending', 'shipped', 'delivered', 'cancelled'].map(status => (
+                          <button 
+                            key={status}
+                            onClick={() => handleUpdateOrderStatus(selectedOrder.id, status)}
+                            disabled={selectedOrder.status === status}
+                            style={{ 
+                              padding: '8px 15px', 
+                              borderRadius: '20px', 
+                              border: 'none',
+                              cursor: selectedOrder.status === status ? 'default' : 'pointer',
+                              fontSize: '0.8rem', 
+                              fontWeight: '600', 
+                              background: selectedOrder.status === status 
+                                ? (status === 'pending' ? '#fef3c7' : status === 'cancelled' ? '#fee2e2' : status === 'shipped' ? '#dbeafe' : '#d1fae5') 
+                                : '#f1f5f9',
+                              color: selectedOrder.status === status 
+                                ? (status === 'pending' ? '#92400e' : status === 'cancelled' ? '#ef4444' : status === 'shipped' ? '#1e40af' : '#065f46') 
+                                : '#64748b',
+                              textTransform: 'uppercase', 
+                              letterSpacing: '0.5px',
+                              opacity: selectedOrder.status === status ? 1 : 0.7,
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {status}
+                          </button>
+                        ))}
+                     </div>
                   </div>
                 </div>
                 

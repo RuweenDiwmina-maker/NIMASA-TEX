@@ -9,13 +9,19 @@ const PrivacyPolicy = () => {
     <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', paddingBottom: '80px' }}>
       {/* Hero Section */}
       <div style={{ 
-        background: 'linear-gradient(135deg, #111 0%, #333 100%)', 
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)', 
         color: '#fff', 
         padding: '120px 20px 60px',
         textAlign: 'center',
-        marginBottom: '60px'
+        marginBottom: '60px',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        {/* Decorative background elements */}
+        <div style={{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', background: 'radial-gradient(circle at top right, rgba(230,0,0,0.15) 0%, transparent 40%), radial-gradient(circle at bottom left, rgba(230,0,0,0.1) 0%, transparent 40%)' }}></div>
+        <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.02)', filter: 'blur(30px)' }}></div>
+        
+        <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div style={{ 
             display: 'inline-flex', 
             alignItems: 'center', 
@@ -136,27 +142,35 @@ const PrivacyPolicy = () => {
             <p style={{ color: '#555', lineHeight: '1.8', fontSize: '1.05rem', marginBottom: '20px' }}>
               If you have any questions about this privacy policy or our privacy practices, please contact us at:
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '10px' }}>
-                <div style={{ color: '#9333ea' }}><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: '#888', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px' }}>Email</div>
-                  <div style={{ fontWeight: '500', color: '#111' }}>support@nimasatex.com</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+              {/* Call Us */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '30px 20px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #eee', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '50px', height: '50px', backgroundColor: '#fdf2f2', color: '#e60000', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+                  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                 </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#111', marginBottom: '8px' }}>Call Us</div>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>Speak to our team directly.</div>
+                <div style={{ fontWeight: '700', color: '#111', fontSize: '1.1rem' }}>+94 312 259 681</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '10px' }}>
-                <div style={{ color: '#9333ea' }}><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: '#888', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px' }}>Phone</div>
-                  <div style={{ fontWeight: '500', color: '#111' }}>+94 11 234 5678</div>
+
+              {/* WhatsApp */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '30px 20px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #eee', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '50px', height: '50px', backgroundColor: '#f0fdf4', color: '#16a34a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+                  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                 </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#111', marginBottom: '8px' }}>WhatsApp</div>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>Send us a message anytime.</div>
+                <div style={{ fontWeight: '700', color: '#111', fontSize: '1.1rem' }}>+94 75 436 0408</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '10px' }}>
-                <div style={{ color: '#9333ea' }}><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-                <div>
-                  <div style={{ fontSize: '0.85rem', color: '#888', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.5px' }}>Address</div>
-                  <div style={{ fontWeight: '500', color: '#111' }}>123 Fashion Street, Colombo, Sri Lanka</div>
+
+              {/* Visit Us */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '30px 20px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #eee', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '50px', height: '50px', backgroundColor: '#fdf2f2', color: '#e60000', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+                  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#111', marginBottom: '8px' }}>Visit Us</div>
+                <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>No 7 Pannala Road, Dankotuwa.</div>
+                <div style={{ fontWeight: '600', color: '#cc0000', fontSize: '0.95rem' }}>Open Daily until 9:00 PM</div>
               </div>
             </div>
           </section>

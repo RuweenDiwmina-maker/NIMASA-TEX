@@ -130,11 +130,15 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
                   const lastName = e.target[1].value;
                   const phone = e.target[2].value;
                   const birthday = e.target[3].value;
-                  if (firstName && lastName && phone && birthday) {
+                  const address = e.target[4].value;
+                  const city = e.target[5].value;
+                  if (firstName && lastName && phone && birthday && address && city) {
                     await updateUserProfile(user.uid, {
                       name: `${firstName} ${lastName}`,
                       phone,
-                      birthday
+                      birthday,
+                      address,
+                      city
                     });
                     setActiveView('main');
                   }
@@ -154,6 +158,14 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
                   <div className="form-group">
                     <label>Birthday</label>
                     <input type="date" defaultValue={user.birthday || ''} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Address</label>
+                    <input type="text" placeholder="Street Address" defaultValue={user.address || ''} required />
+                  </div>
+                  <div className="form-group">
+                    <label>City</label>
+                    <input type="text" placeholder="City" defaultValue={user.city || ''} required />
                   </div>
                   <button type="submit" className="btn-rewards-primary">Save Profile</button>
                 </form>
@@ -236,7 +248,7 @@ const RewardsPopup = ({ openSignIn, openJoinUs }) => {
                     { text: 'My Rewards', icon: '🏆', view: 'rewards' },
                     { text: 'Earn Points', icon: '💰', view: 'main' },
                     { text: 'About Loyalty Program', icon: 'ℹ️', view: 'about' }
-                  ].filter(item => !(item.view === 'profile' && user.name && user.phone && user.birthday)).map((item, index) => (
+                  ].filter(item => !(item.view === 'profile' && user.name && user.phone && user.birthday && user.address && user.city)).map((item, index) => (
                     <button 
                       key={index} 
                       className="rewards-menu-item" 
