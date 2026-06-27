@@ -1,0 +1,36 @@
+.nl-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.nl-mark {
+  width: min(46vw, 220px);
+  aspect-ratio: 1/1;
+}
+
+.nl-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* faint static "ghost" outline, always visible as a guide */
+.nl-ghost {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .08;
+  stroke-width: 14;
+  stroke-linejoin: miter;
+}
+
+/* the active drawing stroke */
+.nl-draw {
+  fill: none;
+  stroke: #0a0a0a;
+  stroke-width: 14;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+}

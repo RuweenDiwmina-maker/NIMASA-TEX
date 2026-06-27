@@ -29,6 +29,7 @@ const Footer = () => {
           <h4>Help</h4>
           <ul>
             <li><Link to="/shipping.html">Shipping & Delivery</Link></li>
+            <li><Link to="/privacy.html">Privacy Policy</Link></li>
             <li><Link to="/returns.html">Returns</Link></li>
             <li><Link to="/help">Contact Us</Link></li>
           </ul>

@@ -21,6 +21,8 @@ import Wishlist from './pages/Wishlist';
 import UserProfile from './pages/UserProfile';
 import ProductDetails from './pages/ProductDetails';
 import AboutLoyalty from './pages/AboutLoyalty';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TrackOrder from './pages/TrackOrder';
 import { HeroProvider } from './context/HeroContext';
 
 function App() {
@@ -75,6 +77,8 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/shipping.html" element={<Shipping />} />
         <Route path="/returns.html" element={<Returns />} />
+        <Route path="/privacy.html" element={<PrivacyPolicy />} />
+        <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/help" element={<Help />} />
         <Route path="/about-loyalty" element={<AboutLoyalty />} />
       </Routes>

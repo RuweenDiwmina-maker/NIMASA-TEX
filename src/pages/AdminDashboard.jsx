@@ -80,6 +80,12 @@ const GiftIcon = () => (
   </svg>
 );
 
+const OrderIcon = () => (
+  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+  </svg>
+);
+
 // --- Helper Functions ---
 const parsePrice = (priceStr) => {
   if (!priceStr) return 0;
@@ -111,6 +117,11 @@ const AdminDashboard = () => {
   const [dbUsers, setDbUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
+  // Orders State
+  const [dbOrders, setDbOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   useEffect(() => {
     if ((activeTab === 'users' || activeTab === 'rewards') && dbUsers.length === 0) {
       const fetchUsers = async () => {
@@ -130,19 +141,27 @@ const AdminDashboard = () => {
       };
       fetchUsers();
     }
-  }, [activeTab]);
 
-  // Lock body scroll when any modal is open
-  useEffect(() => {
-    if (isModalOpen || isAdModalOpen || selectedUserForHistory) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+    if (activeTab === 'orders' && dbOrders.length === 0) {
+      const fetchOrders = async () => {
+        setLoadingOrders(true);
+        try {
+          const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+          const querySnapshot = await getDocs(q);
+          const ordersList = [];
+          querySnapshot.forEach((doc) => {
+            ordersList.push({ id: doc.id, ...doc.data() });
+          });
+          setDbOrders(ordersList);
+        } catch (error) {
+          console.error("Error fetching orders:", error);
+        } finally {
+          setLoadingOrders(false);
+        }
+      };
+      fetchOrders();
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isModalOpen, isAdModalOpen, selectedUserForHistory]);
+  }, [activeTab, dbOrders.length]);
 
   // Ad State
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
@@ -157,6 +176,18 @@ const AdminDashboard = () => {
   const [selectedUserForHistory, setSelectedUserForHistory] = useState(null);
   const [userRewardHistory, setUserRewardHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    if (isModalOpen || isAdModalOpen || selectedUserForHistory || selectedOrder) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen, isAdModalOpen, selectedUserForHistory, selectedOrder]);
 
   const fetchUserHistory = async (userId) => {
     setLoadingHistory(true);
@@ -194,6 +225,8 @@ const AdminDashboard = () => {
       return p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
     });
   }, [products, searchQuery]);
+
+  const newOrdersCount = dbOrders.filter(order => order.status === 'pending').length;
 
   if (!user || user.role !== 'admin') return null;
 
@@ -473,7 +506,18 @@ const AdminDashboard = () => {
         </div>
         
         <nav style={{ flex: 1, padding: '20px 0' }}>
-          <div onClick={() => setActiveTab('products')} style={{ padding: '12px 20px', backgroundColor: activeTab === 'products' ? '#222' : 'transparent', borderLeft: activeTab === 'products' ? '4px solid #fff' : '4px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', transition: 'background-color 0.2s' }}>
+          <div onClick={() => setActiveTab('orders')} style={{ padding: '12px 20px', backgroundColor: activeTab === 'orders' ? '#222' : 'transparent', borderLeft: activeTab === 'orders' ? '4px solid #fff' : '4px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background-color 0.2s' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <OrderIcon />
+              <span style={{ fontWeight: '500' }}>Orders</span>
+            </div>
+            {newOrdersCount > 0 && (
+              <span style={{ backgroundColor: '#ef4444', color: '#fff', fontSize: '0.75rem', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', animation: 'pulse 2s infinite' }}>
+                {newOrdersCount} New
+              </span>
+            )}
+          </div>
+          <div onClick={() => setActiveTab('products')} style={{ padding: '12px 20px', backgroundColor: activeTab === 'products' ? '#222' : 'transparent', borderLeft: activeTab === 'products' ? '4px solid #fff' : '4px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', transition: 'background-color 0.2s', marginTop: '5px' }}>
             <BoxIcon />
             <span style={{ fontWeight: '500' }}>Products</span>
           </div>
@@ -506,10 +550,10 @@ const AdminDashboard = () => {
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: '700', margin: '0 0 5px 0' }}>
-              {activeTab === 'products' ? 'Product Inventory' : activeTab === 'ads' ? 'Advertisement Management' : 'Registered Users'}
+              {activeTab === 'orders' ? 'Orders Management' : activeTab === 'products' ? 'Product Inventory' : activeTab === 'ads' ? 'Advertisement Management' : 'Registered Users'}
             </h1>
             <p style={{ color: '#666', margin: 0 }}>
-              {activeTab === 'products' ? 'Manage your store products and categories.' : activeTab === 'ads' ? 'Manage your homepage hero banners.' : 'View details of users who have registered on the web.'}
+              {activeTab === 'orders' ? 'View and manage customer orders.' : activeTab === 'products' ? 'Manage your store products and categories.' : activeTab === 'ads' ? 'Manage your homepage hero banners.' : 'View details of users who have registered on the web.'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '15px' }}>
@@ -534,6 +578,62 @@ const AdminDashboard = () => {
             )}
           </div>
         </header>
+
+        {activeTab === 'orders' && (
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+            <div style={{ padding: '20px 25px', borderBottom: '1px solid #eee' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0 }}>Customer Orders</h2>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ background: '#f9fafb', borderBottom: '1px solid #eee' }}>
+                <tr>
+                  <th style={{ padding: '15px 25px', color: '#666', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase' }}>Order ID</th>
+                  <th style={{ padding: '15px 25px', color: '#666', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase' }}>Date</th>
+                  <th style={{ padding: '15px 25px', color: '#666', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase' }}>Customer</th>
+                  <th style={{ padding: '15px 25px', color: '#666', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase' }}>Total</th>
+                  <th style={{ padding: '15px 25px', color: '#666', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase' }}>Status</th>
+                  <th style={{ padding: '15px 25px', color: '#666', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingOrders ? (
+                  <tr><td colSpan="6" style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>Loading orders...</td></tr>
+                ) : dbOrders.length === 0 ? (
+                  <tr><td colSpan="6" style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>No orders found.</td></tr>
+                ) : (
+                  dbOrders.map(order => (
+                    <tr key={order.id} style={{ 
+                      borderBottom: '1px solid #eee', 
+                      backgroundColor: order.status === 'pending' ? '#f0fdf4' : 'transparent',
+                      animation: order.status === 'pending' ? 'highlightNew 2s infinite alternate' : 'none' 
+                    }}>
+                      <td style={{ padding: '15px 25px', fontWeight: '500' }}>
+                        #{order.id.slice(-6).toUpperCase()}
+                        {order.status === 'pending' && <span style={{ marginLeft: '8px', fontSize: '0.65rem', padding: '2px 6px', background: '#22c55e', color: '#fff', borderRadius: '10px', fontWeight: '700', verticalAlign: 'middle' }}>NEW</span>}
+                      </td>
+                      <td style={{ padding: '15px 25px', color: '#555' }}>{order.createdAt ? new Date(order.createdAt.toDate()).toLocaleDateString() : 'N/A'}</td>
+                      <td style={{ padding: '15px 25px', color: '#555' }}>
+                        {order.customerDetails?.firstName} {order.customerDetails?.lastName}
+                        {!order.userId && <span style={{ marginLeft: '8px', fontSize: '0.7rem', padding: '3px 6px', background: '#e2e8f0', color: '#475569', borderRadius: '4px', fontWeight: '600' }}>GUEST</span>}
+                      </td>
+                      <td style={{ padding: '15px 25px', fontWeight: '600' }}>{formatPrice(order.totalAmount)}</td>
+                      <td style={{ padding: '15px 25px' }}>
+                        <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', background: order.status === 'pending' ? '#fef3c7' : '#d1fae5', color: order.status === 'pending' ? '#92400e' : '#065f46', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          {order.status || 'PENDING'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '15px 25px', textAlign: 'right' }}>
+                        <button onClick={() => setSelectedOrder(order)} style={{ padding: '8px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#334155', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '500', transition: 'all 0.2s' }}>
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {activeTab === 'products' && (
           <>
@@ -1091,6 +1191,66 @@ const AdminDashboard = () => {
               </div>
               <div style={{ padding: '15px 25px', borderTop: '1px solid #eee', backgroundColor: '#f9fafb', display: 'flex', justifyContent: 'flex-end' }}>
                 <button onClick={() => setSelectedUserForHistory(null)} style={{ padding: '10px 20px', border: '1px solid #ddd', background: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Order Details Modal */}
+        {selectedOrder && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+            <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'fadeIn 0.3s ease-out' }}>
+              <div style={{ padding: '20px 25px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#f9fafb', zIndex: 10 }}>
+                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '600', color: '#111' }}>
+                  Order Details <span style={{ color: '#666', fontWeight: 'normal' }}>#{selectedOrder.id.slice(-6).toUpperCase()}</span>
+                </h2>
+                <button onClick={() => setSelectedOrder(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', color: '#888', cursor: 'pointer' }}>&times;</button>
+              </div>
+              
+              <div style={{ padding: '25px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 15px 0', fontSize: '1rem', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Customer Information</h3>
+                  <p style={{ margin: '5px 0', fontSize: '0.95rem' }}>
+                    <strong>Name:</strong> {selectedOrder.customerDetails?.firstName} {selectedOrder.customerDetails?.lastName}
+                    {!selectedOrder.userId && <span style={{ marginLeft: '8px', fontSize: '0.75rem', padding: '3px 6px', background: '#e2e8f0', color: '#475569', borderRadius: '4px', fontWeight: '600' }}>GUEST</span>}
+                  </p>
+                  <p style={{ margin: '5px 0', fontSize: '0.95rem' }}><strong>Email:</strong> {selectedOrder.customerDetails?.email}</p>
+                  <p style={{ margin: '5px 0', fontSize: '0.95rem' }}><strong>Phone:</strong> {selectedOrder.customerDetails?.phone}</p>
+                  
+                  <h3 style={{ margin: '25px 0 15px 0', fontSize: '1rem', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Shipping Details</h3>
+                  <p style={{ margin: '5px 0', fontSize: '0.95rem' }}><strong>Method:</strong> {selectedOrder.shippingMethod === 'deliver' ? `Delivery (${selectedOrder.shippingOption})` : 'Store Pickup'}</p>
+                  {selectedOrder.shippingMethod === 'deliver' && (
+                    <p style={{ margin: '5px 0', fontSize: '0.95rem' }}><strong>Address:</strong> {selectedOrder.customerDetails?.address}, {selectedOrder.customerDetails?.city}</p>
+                  )}
+                  
+                  <h3 style={{ margin: '25px 0 15px 0', fontSize: '1rem', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Payment Info</h3>
+                  <p style={{ margin: '5px 0', fontSize: '0.95rem' }}><strong>Method:</strong> {selectedOrder.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Credit/Debit Card'}</p>
+                  <p style={{ margin: '15px 0 5px 0', fontWeight: '700', fontSize: '1.2rem', color: '#111' }}><strong>Total:</strong> {formatPrice(selectedOrder.totalAmount)}</p>
+                  <div style={{ marginTop: '20px' }}>
+                     <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600', background: selectedOrder.status === 'pending' ? '#fef3c7' : '#d1fae5', color: selectedOrder.status === 'pending' ? '#92400e' : '#065f46', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Status: {selectedOrder.status || 'PENDING'}
+                     </span>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 style={{ margin: '0 0 15px 0', fontSize: '1rem', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Items ({selectedOrder.items?.length})</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {selectedOrder.items?.map((item, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '15px', alignItems: 'center', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <img src={item.image} alt={item.title} style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: '0 0 5px 0', fontSize: '0.95rem' }}>{item.title}</h4>
+                          <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem' }}>Size: {item.size || 'N/A'} | Qty: {item.quantity}</p>
+                          <p style={{ margin: '5px 0 0 0', fontWeight: '600', fontSize: '0.95rem', color: '#0f172a' }}>{formatPrice(item.price)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div style={{ padding: '15px 25px', borderTop: '1px solid #eee', backgroundColor: '#f9fafb', display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => setSelectedOrder(null)} style={{ padding: '10px 20px', border: '1px solid #ddd', background: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Close</button>
               </div>
             </div>
           </div>
