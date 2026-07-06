@@ -31,6 +31,29 @@ const Checkout = () => {
     phone: ''
   });
 
+  const [cardData, setCardData] = useState({
+    number: '',
+    expiry: '',
+    cvv: '',
+    name: ''
+  });
+
+  const handleCardChange = (e) => {
+    const { name, value } = e.target;
+    let formattedValue = value;
+    if (name === 'number') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
+    } else if (name === 'expiry') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 4);
+      if (formattedValue.length > 2) {
+        formattedValue = `${formattedValue.slice(0, 2)}/${formattedValue.slice(2)}`;
+      }
+    } else if (name === 'cvv') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 3);
+    }
+    setCardData(prev => ({ ...prev, [name]: formattedValue }));
+  };
+
   // Auto-fill checkout form if user is logged in
   useEffect(() => {
     if (user) {
@@ -66,13 +89,26 @@ const Checkout = () => {
   }, []);
 
   useEffect(() => {
-    // Check if required fields are filled to enable Place Order
-    if (formData.firstName && formData.lastName && formData.address && formData.phone) {
-      setFormValid(true);
-    } else {
+    // Check if basic customer details are filled
+    const basicValid = !!(formData.firstName && formData.lastName && formData.address && formData.phone);
+    if (!basicValid) {
       setFormValid(false);
+      return;
     }
-  }, [formData]);
+    
+    if (paymentMethod === 'card') {
+      const cleanCardNumber = cardData.number.replace(/\s/g, '');
+      const cardValid = cleanCardNumber.length === 16 && 
+                        cardData.expiry.length === 5 && 
+                        cardData.cvv.length === 3 && 
+                        cardData.name.trim().length > 0;
+      setFormValid(cardValid);
+    } else if (paymentMethod === 'cod') {
+      setFormValid(!!user); // COD is only for logged in users
+    } else {
+      setFormValid(true);
+    }
+  }, [formData, paymentMethod, cardData, user]);
 
   // Lock body scroll when leave modal is open
   useEffect(() => {
@@ -117,10 +153,15 @@ const Checkout = () => {
           shippingMethod: deliveryMethod,
           shippingOption: deliveryMethod === 'deliver' ? shippingOption : null,
           paymentMethod: paymentMethod,
+          paymentDetails: paymentMethod === 'card' ? {
+            cardLast4: cardData.number.slice(-4),
+            cardName: cardData.name,
+            status: 'paid'
+          } : null,
           billingDetails: paymentMethod === 'cod' && billingOption === 'different' ? billingData : null,
           userId: user ? user.uid : null,
           createdAt: serverTimestamp(),
-          status: 'pending'
+          status: paymentMethod === 'card' ? 'paid' : 'pending'
         };
 
         const docRef = await addDoc(collection(db, 'orders'), orderData);
@@ -300,23 +341,23 @@ const Checkout = () => {
               {paymentMethod === 'card' && (
                 <div className="payment-accordion-body" style={{ backgroundColor: '#f6f8fb', padding: '1rem', borderTop: '1px solid var(--color-gray-200)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                   <div className="floating-input-group" style={{ position: 'relative' }}>
-                    <input type="text" className="floating-input" placeholder=" " />
+                    <input type="text" name="number" value={cardData.number} onChange={handleCardChange} className="floating-input" placeholder=" " />
                     <label className="floating-label">Card number</label>
                     <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-500)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                   </div>
                   <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                     <div className="floating-input-group" style={{ flex: 1 }}>
-                      <input type="text" className="floating-input" placeholder=" " />
+                      <input type="text" name="expiry" value={cardData.expiry} onChange={handleCardChange} className="floating-input" placeholder=" " />
                       <label className="floating-label">Expiration date (MM / YY)</label>
                     </div>
                     <div className="floating-input-group" style={{ flex: 1, position: 'relative' }}>
-                      <input type="text" className="floating-input" placeholder=" " />
+                      <input type="text" name="cvv" value={cardData.cvv} onChange={handleCardChange} className="floating-input" placeholder=" " />
                       <label className="floating-label">Security code</label>
                       <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-500)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     </div>
                   </div>
                   <div className="floating-input-group">
-                    <input type="text" className="floating-input" placeholder=" " />
+                    <input type="text" name="name" value={cardData.name} onChange={handleCardChange} className="floating-input" placeholder=" " />
                     <label className="floating-label">Name on card</label>
                   </div>
                 </div>

@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ProductProvider } from './context/ProductContext.jsx'
 import { WishlistProvider } from './context/WishlistContext.jsx'
+import { HeroProvider } from './context/HeroContext.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import './style.css'
 
@@ -14,13 +15,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <ProductProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <ErrorBoundary>
-                <App />
-              </ErrorBoundary>
-            </CartProvider>
-          </WishlistProvider>
+          <HeroProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <ErrorBoundary>
+                  <App />
+                </ErrorBoundary>
+              </CartProvider>
+            </WishlistProvider>
+          </HeroProvider>
         </ProductProvider>
       </AuthProvider>
     </BrowserRouter>

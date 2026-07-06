@@ -57,6 +57,7 @@ const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]); // Start empty, load from Firestore
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const productsCollection = collection(db, 'products');
@@ -69,6 +70,10 @@ export const ProductProvider = ({ children }) => {
         firestoreProducts.sort((a, b) => parseInt(a.id) - parseInt(b.id));
         setProducts(firestoreProducts);
       }
+      setLoading(false);
+    }, (error) => {
+      console.error("Error loading products:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -103,7 +108,7 @@ export const ProductProvider = ({ children }) => {
   };
 
   return (
-    <ProductContext.Provider value={{ products, addProduct, updateProduct, deleteProduct }}>
+    <ProductContext.Provider value={{ products, addProduct, updateProduct, deleteProduct, loading }}>
       {children}
     </ProductContext.Provider>
   );

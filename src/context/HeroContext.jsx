@@ -85,6 +85,7 @@ const HeroContext = createContext(null);
 
 export const HeroProvider = ({ children }) => {
   const [ads, setAds] = useState([]); // Start empty, will load from Firestore
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const adsCollection = collection(db, 'ads');
@@ -99,6 +100,10 @@ export const HeroProvider = ({ children }) => {
         formattedAds.sort((a, b) => parseInt(a.id) - parseInt(b.id));
         setAds(formattedAds);
       }
+      setLoading(false);
+    }, (error) => {
+      console.error("Error loading ads:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -146,7 +151,7 @@ export const HeroProvider = ({ children }) => {
   };
 
   return (
-    <HeroContext.Provider value={{ ads, settings, addAd, updateAd, deleteAd, updateSettings }}>
+    <HeroContext.Provider value={{ ads, settings, addAd, updateAd, deleteAd, updateSettings, loading }}>
       {children}
     </HeroContext.Provider>
   );
