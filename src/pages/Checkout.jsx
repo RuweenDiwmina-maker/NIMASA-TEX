@@ -6,6 +6,181 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
+// Lightweight pure JS MD5 helper
+function md5(string) {
+  function RotateLeft(lValue, iShiftBits) {
+    return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
+  }
+  function AddUnsigned(lX, lY) {
+    var lX4, lY4, lX8, lY8, lResult;
+    lX8 = (lX & 0x80000000);
+    lY8 = (lY & 0x80000000);
+    lX4 = (lX & 0x40000000);
+    lY4 = (lY & 0x40000000);
+    lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+    if (lX4 & lY4) {
+      return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
+    }
+    if (lX4 | lY4) {
+      if (lResult & 0x40000000) {
+        return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
+      } else {
+        return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
+      }
+    } else {
+      return (lResult ^ lX8 ^ lY8);
+    }
+  }
+  function F(x, y, z) { return (x & y) | ((~x) & z); }
+  function G(x, y, z) { return (x & z) | (y & (~z)); }
+  function H(x, y, z) { return (x ^ y ^ z); }
+  function I(x, y, z) { return (y ^ (x | (~z))); }
+  function FF(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function GG(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function HH(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function II(a, b, c, d, x, s, ac) {
+    a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
+    return AddUnsigned(RotateLeft(a, s), b);
+  }
+  function ConvertToWordArray(string) {
+    var lWordCount;
+    var lMessageLength = string.length;
+    var lNumberOfWords_temp1 = lMessageLength + 8;
+    var lNumberOfWords_temp2 = (lMessageLength + 8 - ((lMessageLength + 8) % 64)) / 64;
+    var lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
+    var lWordArray = Array(lNumberOfWords);
+    var lBytePosition = 0;
+    var lByteCount = 0;
+    while (lByteCount < lMessageLength) {
+      lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+      lBytePosition = (lByteCount % 4) * 8;
+      lWordArray[lWordCount] = (lWordArray[lWordCount] | (string.charCodeAt(lByteCount) << lBytePosition));
+      lByteCount++;
+    }
+    lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+    lBytePosition = (lByteCount % 4) * 8;
+    lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80 << lBytePosition);
+    lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
+    lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
+    return lWordArray;
+  }
+  function WordToHex(lValue) {
+    var WordToHexValue = "", WordToHexValue_temp = "", lByte, lCount;
+    for (lCount = 0; lCount <= 3; lCount++) {
+      lByte = (lValue >>> (lCount * 8)) & 255;
+      WordToHexValue_temp = "0" + lByte.toString(16);
+      WordToHexValue = WordToHexValue + WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
+    }
+    return WordToHexValue;
+  }
+  function Utf8Encode(string) {
+    string = string.replace(/\r\n/g, "\n");
+    var utftext = "";
+    for (var n = 0; n < string.length; n++) {
+      var c = string.charCodeAt(n);
+      if (c < 128) {
+        utftext += String.fromCharCode(c);
+      } else if ((c > 127) && (c < 2048)) {
+        utftext += String.fromCharCode((c >> 6) | 192);
+        utftext += String.fromCharCode((c & 63) | 128);
+      } else {
+        utftext += String.fromCharCode((c >> 12) | 224);
+        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+        utftext += String.fromCharCode((c & 63) | 128);
+      }
+    }
+    return utftext;
+  }
+  var x = Array();
+  var k, AA, BB, CC, DD, a, b, c, d;
+  var S11 = 7, S12 = 12, S13 = 17, S14 = 22;
+  var S21 = 5, S22 = 9, S23 = 14, S24 = 20;
+  var S31 = 4, S32 = 11, S33 = 16, S34 = 23;
+  var S41 = 6, S42 = 10, S43 = 15, S44 = 21;
+  string = Utf8Encode(string);
+  x = ConvertToWordArray(string);
+  a = 0x67452301; b = 0xEFCDAB89; c = 0x98BADCFE; d = 0x10325476;
+  for (k = 0; k < x.length; k += 16) {
+    AA = a; BB = b; CC = c; DD = d;
+    a = FF(a, b, c, d, x[k + 0], S11, 0xD76AA478);
+    d = FF(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
+    c = FF(c, d, a, b, x[k + 2], S13, 0x242070DB);
+    b = FF(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
+    a = FF(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
+    d = FF(d, a, b, c, x[k + 5], S12, 0x4787C62A);
+    c = FF(c, d, a, b, x[k + 6], S13, 0xA8304613);
+    b = FF(b, c, d, a, x[k + 7], S14, 0xFD469501);
+    a = FF(a, b, c, d, x[k + 8], S11, 0x698098D8);
+    d = FF(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
+    c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+    b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+    a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
+    d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
+    c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
+    b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
+    a = GG(a, b, c, d, x[k + 1], S21, 0xF61E2562);
+    d = GG(d, a, b, c, x[k + 6], S22, 0xC040B340);
+    c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+    b = GG(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
+    a = GG(a, b, c, d, x[k + 5], S21, 0xD62F105D);
+    d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
+    c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+    b = GG(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
+    a = GG(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
+    d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+    c = GG(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
+    b = GG(b, c, d, a, x[k + 8], S24, 0x455A14ED);
+    a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+    d = GG(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
+    c = GG(c, d, a, b, x[k + 7], S23, 0x676F02D9);
+    b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+    a = HH(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
+    d = HH(d, a, b, c, x[k + 8], S32, 0x8771F681);
+    c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+    b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+    a = HH(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
+    d = HH(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
+    c = HH(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
+    b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+    a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+    d = HH(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
+    c = HH(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
+    b = HH(b, c, d, a, x[k + 6], S34, 0x4881D05);
+    a = HH(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
+    d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+    c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+    b = HH(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
+    a = II(a, b, c, d, x[k + 0], S41, 0xF4292244);
+    d = II(d, a, b, c, x[k + 7], S42, 0x432AFF97);
+    c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+    b = II(b, c, d, a, x[k + 5], S44, 0xFC93A039);
+    a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+    d = II(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
+    c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+    b = II(b, c, d, a, x[k + 1], S44, 0x85845DD1);
+    a = II(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
+    d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+    c = II(c, d, a, b, x[k + 6], S43, 0xA3014314);
+    b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+    a = II(a, b, c, d, x[k + 4], S41, 0xF7537E82);
+    d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+    c = II(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
+    b = II(b, c, d, a, x[k + 9], S44, 0xEB86D391);
+    a = AddUnsigned(a, AA); b = AddUnsigned(b, BB); c = AddUnsigned(c, CC); d = AddUnsigned(d, DD);
+  }
+  var temp = WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
+  return temp.toLowerCase();
+}
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, totalItems, clearCart } = useCart();
@@ -19,6 +194,7 @@ const Checkout = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [placedOrderId, setPlacedOrderId] = useState('');
+  const [completedOrder, setCompletedOrder] = useState(null);
   const [targetRoute, setTargetRoute] = useState('');
   const [usePoints, setUsePoints] = useState(false);
 
@@ -31,28 +207,17 @@ const Checkout = () => {
     phone: ''
   });
 
-  const [cardData, setCardData] = useState({
-    number: '',
-    expiry: '',
-    cvv: '',
-    name: ''
-  });
-
-  const handleCardChange = (e) => {
-    const { name, value } = e.target;
-    let formattedValue = value;
-    if (name === 'number') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
-    } else if (name === 'expiry') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 4);
-      if (formattedValue.length > 2) {
-        formattedValue = `${formattedValue.slice(0, 2)}/${formattedValue.slice(2)}`;
-      }
-    } else if (name === 'cvv') {
-      formattedValue = value.replace(/\D/g, '').slice(0, 3);
-    }
-    setCardData(prev => ({ ...prev, [name]: formattedValue }));
-  };
+  // Load PayHere script dynamically
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://sandbox.payhere.lk/lib/payhere.js";
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   // Auto-fill checkout form if user is logged in
   useEffect(() => {
@@ -96,19 +261,12 @@ const Checkout = () => {
       return;
     }
     
-    if (paymentMethod === 'card') {
-      const cleanCardNumber = cardData.number.replace(/\s/g, '');
-      const cardValid = cleanCardNumber.length === 16 && 
-                        cardData.expiry.length === 5 && 
-                        cardData.cvv.length === 3 && 
-                        cardData.name.trim().length > 0;
-      setFormValid(cardValid);
-    } else if (paymentMethod === 'cod') {
+    if (paymentMethod === 'cod') {
       setFormValid(!!user); // COD is only for logged in users
     } else {
-      setFormValid(true);
+      setFormValid(true); // for PayHere card payment or other methods
     }
-  }, [formData, paymentMethod, cardData, user]);
+  }, [formData, paymentMethod, user]);
 
   // Lock body scroll when leave modal is open
   useEffect(() => {
@@ -144,7 +302,106 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (formValid && !(paymentMethod === 'cod' && !user)) {
+    if (!formValid) return;
+    
+    if (paymentMethod === 'cod' && !user) {
+      alert("Members only feature: Please log in to use Cash on Delivery.");
+      return;
+    }
+
+    if (paymentMethod === 'card') {
+      if (!window.payhere) {
+        alert("Payment gateway is loading, please try again in a moment.");
+        return;
+      }
+
+      // Generate a unique order ID
+      const orderId = `NT-${Date.now()}`;
+      const merchantId = "1236780";
+      const merchantSecret = "MTAyNzY0Nzg0MDQxMzI2Mjc3ODA0MDU5MTIxNjIzMjIwNTk1NjM2Mw==";
+      
+      // Calculate the PayHere hash
+      // hash = uppercase(md5(merchant_id + order_id + amount + currency + uppercase(md5(merchant_secret))))
+      const amountFormatted = total.toFixed(2);
+      const currency = "LKR";
+      const hashedSecret = md5(merchantSecret).toUpperCase();
+      const inputStr = merchantId + orderId + amountFormatted + currency + hashedSecret;
+      const paymentHash = md5(inputStr).toUpperCase();
+
+      const payment = {
+        sandbox: true,
+        merchant_id: merchantId,
+        return_url: "https://www.nimasatex.com/checkout",
+        cancel_url: "https://www.nimasatex.com/checkout",
+        notify_url: "https://www.nimasatex.com/checkout",
+        order_id: orderId,
+        items: `Nimasa Tex Order #${orderId}`,
+        amount: amountFormatted,
+        currency: currency,
+        hash: paymentHash,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email || (user ? user.email : 'guest@nimasatex.com'),
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city || 'Colombo',
+        country: "Sri Lanka",
+        delivery_address: formData.address,
+        delivery_city: formData.city || 'Colombo',
+        delivery_country: "Sri Lanka"
+      };
+
+      // Set callbacks
+      window.payhere.onCompleted = async function (payhereOrderId) {
+        try {
+          const orderData = {
+            items: cartItems,
+            totalAmount: total,
+            customerDetails: { ...formData, email: user ? user.email : '' },
+            shippingMethod: deliveryMethod,
+            shippingOption: deliveryMethod === 'deliver' ? shippingOption : null,
+            paymentMethod: 'card',
+            paymentDetails: {
+              payhereOrderId: payhereOrderId,
+              orderId: orderId,
+              status: 'paid'
+            },
+            billingDetails: billingOption === 'different' ? billingData : null,
+            userId: user ? user.uid : null,
+            createdAt: serverTimestamp(),
+            status: 'paid'
+          };
+
+          const docRef = await addDoc(collection(db, 'orders'), orderData);
+          setPlacedOrderId(docRef.id);
+          setCompletedOrder(orderData);
+
+          if (user && user.isLoyaltyMember) {
+            const finalPoints = userPoints - pointsDiscount + earnedPoints;
+            await updateUserPoints(user.uid, finalPoints);
+          }
+
+          setSuccessMessage(`Payment successful! Order placed successfully!${user?.isLoyaltyMember ? ` You earned ${earnedPoints} points.` : ''} Thank you for shopping with Nimasa Tex.`);
+          setShowSuccessModal(true);
+          clearCart();
+        } catch (error) {
+          console.error("Error creating order after payment: ", error);
+          alert("Payment was successful but there was an error saving your order. Please contact our support team.");
+        }
+      };
+
+      window.payhere.onDismissed = function () {
+        console.log("Payment dismissed");
+      };
+
+      window.payhere.onError = function (error) {
+        console.error("Payment error:", error);
+        alert("Payment failed: " + error);
+      };
+
+      window.payhere.startPayment(payment);
+    } else {
+      // Cash on Delivery (COD) payment
       try {
         const orderData = {
           items: cartItems,
@@ -153,19 +410,16 @@ const Checkout = () => {
           shippingMethod: deliveryMethod,
           shippingOption: deliveryMethod === 'deliver' ? shippingOption : null,
           paymentMethod: paymentMethod,
-          paymentDetails: paymentMethod === 'card' ? {
-            cardLast4: cardData.number.slice(-4),
-            cardName: cardData.name,
-            status: 'paid'
-          } : null,
-          billingDetails: paymentMethod === 'cod' && billingOption === 'different' ? billingData : null,
+          paymentDetails: null,
+          billingDetails: billingOption === 'different' ? billingData : null,
           userId: user ? user.uid : null,
           createdAt: serverTimestamp(),
-          status: paymentMethod === 'card' ? 'paid' : 'pending'
+          status: 'pending'
         };
 
         const docRef = await addDoc(collection(db, 'orders'), orderData);
         setPlacedOrderId(docRef.id);
+        setCompletedOrder(orderData);
 
         if (user && user.isLoyaltyMember) {
           const finalPoints = userPoints - pointsDiscount + earnedPoints;
@@ -191,6 +445,135 @@ const Checkout = () => {
   
   const confirmLeave = () => {
     navigate(targetRoute);
+  };
+
+  const generateReceipt = () => {
+    if (!completedOrder || !placedOrderId) return;
+    
+    const receiptWin = window.open('', '_blank');
+    if (!receiptWin) {
+      alert("Please allow popups to download the receipt.");
+      return;
+    }
+
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    let itemsHtml = '';
+    completedOrder.items.forEach(item => {
+      itemsHtml += `
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px dashed #ccc;">
+            <div style="font-weight: 600;">${item.name}</div>
+            <div style="font-size: 12px; color: #555;">Size: ${item.size || 'N/A'}</div>
+          </td>
+          <td style="padding: 10px 0; border-bottom: 1px dashed #ccc; text-align: center;">${item.quantity}</td>
+          <td style="padding: 10px 0; border-bottom: 1px dashed #ccc; text-align: right;">${formatPrice(item.price * item.quantity)}</td>
+        </tr>
+      `;
+    });
+
+    const subtotal = completedOrder.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const shipping = completedOrder.shippingMethod === 'deliver' ? (completedOrder.shippingOption === 'standard' ? 500 : 1000) : 0;
+    const codFee = completedOrder.paymentMethod === 'cod' ? 40 : 0;
+
+    const receiptHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - Nimasa Tex #${placedOrderId.slice(-6).toUpperCase()}</title>
+        <style>
+          body { font-family: 'Courier New', Courier, monospace; margin: 0; padding: 40px; color: #000; background: #fff; }
+          .receipt-container { max-width: 400px; margin: 0 auto; border: 1px solid #eee; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+          .header { text-align: center; margin-bottom: 30px; }
+          .header img { height: 40px; margin-bottom: 10px; }
+          .header h1 { font-family: sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -0.5px; margin: 0 0 5px; text-transform: uppercase; }
+          .header p { margin: 0; font-size: 14px; color: #555; }
+          .divider { border-top: 2px dashed #000; margin: 20px 0; }
+          .info { margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+          .info-row { display: flex; justify-content: space-between; }
+          table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px; }
+          th { text-align: left; padding-bottom: 10px; border-bottom: 2px dashed #000; }
+          .totals { font-size: 14px; line-height: 1.6; }
+          .totals-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+          .totals-row.grand-total { font-size: 18px; font-weight: bold; border-top: 2px dashed #000; padding-top: 10px; margin-top: 10px; }
+          .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #555; }
+          @media print {
+            body { padding: 0; }
+            .receipt-container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #111; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Print / Save as PDF</button>
+          </div>
+          <div class="header">
+            <h1>NIMASA TEX</h1>
+            <p>Premium Fashion Store</p>
+            <p>123 Fashion Street, Colombo 03</p>
+            <p>Tel: +94 11 234 5678</p>
+          </div>
+          
+          <div class="info">
+            <div class="info-row"><span>Order ID:</span> <strong>#${placedOrderId.slice(-6).toUpperCase()}</strong></div>
+            <div class="info-row"><span>Date:</span> <span>${today}</span></div>
+            <div class="info-row"><span>Customer:</span> <span>${completedOrder.customerDetails.firstName} ${completedOrder.customerDetails.lastName}</span></div>
+            <div class="info-row"><span>Payment:</span> <span style="text-transform: uppercase;">${completedOrder.paymentMethod}</span></div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th style="text-align: center;">Qty</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          
+          <div class="totals">
+            <div class="totals-row">
+              <span>Subtotal:</span>
+              <span>${formatPrice(subtotal)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Shipping:</span>
+              <span>${formatPrice(shipping)}</span>
+            </div>
+            ${codFee > 0 ? `
+            <div class="totals-row">
+              <span>COD Fee:</span>
+              <span>${formatPrice(codFee)}</span>
+            </div>` : ''}
+            <div class="totals-row grand-total">
+              <span>TOTAL:</span>
+              <span>${formatPrice(completedOrder.totalAmount)}</span>
+            </div>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div class="footer">
+            <p style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #000;">Thank you for shopping!</p>
+            <p>Exchange within 14 days with original receipt and tags attached.</p>
+            <p>www.nimasatex.com</p>
+          </div>
+        </div>
+        <script>
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `;
+    
+    receiptWin.document.open();
+    receiptWin.document.write(receiptHtml);
+    receiptWin.document.close();
   };
 
   return (
@@ -339,27 +722,8 @@ const Checkout = () => {
                 </div>
               </div>
               {paymentMethod === 'card' && (
-                <div className="payment-accordion-body" style={{ backgroundColor: '#f6f8fb', padding: '1rem', borderTop: '1px solid var(--color-gray-200)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                  <div className="floating-input-group" style={{ position: 'relative' }}>
-                    <input type="text" name="number" value={cardData.number} onChange={handleCardChange} className="floating-input" placeholder=" " />
-                    <label className="floating-label">Card number</label>
-                    <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-500)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                  </div>
-                  <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                    <div className="floating-input-group" style={{ flex: 1 }}>
-                      <input type="text" name="expiry" value={cardData.expiry} onChange={handleCardChange} className="floating-input" placeholder=" " />
-                      <label className="floating-label">Expiration date (MM / YY)</label>
-                    </div>
-                    <div className="floating-input-group" style={{ flex: 1, position: 'relative' }}>
-                      <input type="text" name="cvv" value={cardData.cvv} onChange={handleCardChange} className="floating-input" placeholder=" " />
-                      <label className="floating-label">Security code</label>
-                      <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-gray-500)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    </div>
-                  </div>
-                  <div className="floating-input-group">
-                    <input type="text" name="name" value={cardData.name} onChange={handleCardChange} className="floating-input" placeholder=" " />
-                    <label className="floating-label">Name on card</label>
-                  </div>
+                <div className="payment-accordion-body" style={{ backgroundColor: '#f6f8fb', padding: '1rem', borderTop: '1px solid var(--color-gray-200)', fontSize: '0.9rem', color: '#555', lineHeight: '1.5' }}>
+                  🔒 <strong>Secure Payment via PayHere:</strong> Click "Place Order" below to pay securely using your Credit/Debit Card (Visa, Mastercard) via PayHere payment gateway.
                 </div>
               )}
             </label>
@@ -654,6 +1018,17 @@ const Checkout = () => {
                   #{placedOrderId.slice(-6).toUpperCase()}
                 </p>
                 <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '8px' }}>Save this ID to track your order.</p>
+                {completedOrder && (
+                  <button
+                    onClick={generateReceipt}
+                    style={{ marginTop: '15px', padding: '10px 20px', backgroundColor: '#fff', color: '#111', border: '1px solid #111', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', transition: 'all 0.2s' }}
+                    onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#111'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.color = '#111'; }}
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Receipt
+                  </button>
+                )}
               </div>
             )}
             <button 
