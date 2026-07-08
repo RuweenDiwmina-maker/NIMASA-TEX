@@ -753,8 +753,11 @@ const AdminDashboard = () => {
                       <td style={{ padding: '15px 25px', fontWeight: '600' }}>
                         {formatPrice(order.totalAmount)}
                         {order.items && order.items.length > 0 && (
-                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#888', fontWeight: 'normal', marginTop: '2px' }}>
-                            {order.items.length} Item{order.items.length !== 1 && 's'}
+                          <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem', color: '#888', fontWeight: 'normal', marginTop: '2px', gap: '6px' }}>
+                            <span>{order.items.length} Item{order.items.length !== 1 && 's'}</span>
+                            {order.paymentMethod === 'cod' && <span style={{ padding: '2px 5px', background: '#f59e0b', color: '#fff', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>COD</span>}
+                            {order.paymentMethod === 'card' && <span style={{ padding: '2px 5px', background: '#3b82f6', color: '#fff', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>CARD</span>}
+                            {order.paymentMethod === 'koko' && <span style={{ padding: '2px 5px', background: '#f43f5e', color: '#fff', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>KOKO</span>}
                           </span>
                         )}
                       </td>
