@@ -22,6 +22,7 @@ import UserProfile from './pages/UserProfile';
 import ProductDetails from './pages/ProductDetails';
 import AboutLoyalty from './pages/AboutLoyalty';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import TrackOrder from './pages/TrackOrder';
 import { useHero } from './context/HeroContext';
 import { useProduct } from './context/ProductContext';
@@ -114,6 +115,7 @@ function App() {
         <Route path="/shipping.html" element={<Shipping />} />
         <Route path="/returns.html" element={<Returns />} />
         <Route path="/privacy.html" element={<PrivacyPolicy />} />
+        <Route path="/terms.html" element={<Terms />} />
         <Route path="/track-order" element={<TrackOrder />} />
         <Route path="/help" element={<Help />} />
         <Route path="/about-loyalty" element={<AboutLoyalty />} />
